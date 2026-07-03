@@ -1,0 +1,8 @@
+{
+  "outputDirectory": "public",
+  "rewrites": [
+    { "source": "/join/:slug", "destination": "/join.html?slug=:slug" },
+    { "source": "/live/:slug", "destination": "/live.html?slug=:slug" },
+    { "source": "/admin", "destination": "/admin/login.html" }
+  ]
+}
