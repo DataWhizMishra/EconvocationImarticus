@@ -309,12 +309,19 @@ async function boot(){
   document.body.classList.toggle('learner-mode', mode === 'learner');
   document.getElementById('learnerNote').style.display = mode === 'learner' ? 'block' : 'none';
 
-  renderStaticContent();
-  buildParticles();
-  buildS2Lines();
-  startCountdown();
-
+  // Start music as early as possible - before any of the (more failure-prone)
+  // DOM-rendering below - so a rendering error can never prevent the #gate
+  // tap handler from getting wired up in the first place.
   MusicPlayer.init(batch.musicDefaultUrl || (batch.settings.music && batch.settings.music.default));
+
+  try {
+    renderStaticContent();
+    buildParticles();
+    buildS2Lines();
+    startCountdown();
+  } catch (e) {
+    console.error('renderStaticContent failed', e);
+  }
 
   if(mode === 'mentor'){
     document.getElementById('nxtBtn').addEventListener('click', nxt);

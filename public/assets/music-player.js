@@ -21,7 +21,19 @@
       audioEl.loop = true;
       audioEl.volume = 0.55;
       audioEl.muted = muted;
-      audioEl.style.display = 'none';
+      // `display:none` is known to silently break <audio> playback in some
+      // WebKit/Safari versions (the element never actually starts, with no
+      // error) - keep it in the layout but visually/interactively invisible
+      // instead.
+      audioEl.style.cssText = 'position:fixed;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;';
+      audioEl.addEventListener('error', () => {
+        const err = audioEl.error;
+        console.error('MusicPlayer: <audio> failed to load/play', {
+          code: err && err.code,
+          message: err && err.message,
+          src: audioEl.currentSrc,
+        });
+      });
       document.body.appendChild(audioEl);
     }
     return audioEl;
@@ -92,7 +104,20 @@
               .then(() => {
                 if (startedAtMs) resyncTo(startedAtMs);
               })
-              .catch((err) => console.warn('MusicPlayer: playback failed after tap', err));
+              .catch((err) => {
+                // Tapping counts as a user gesture even if this first attempt
+                // lost a race with something else (e.g. the element wasn't
+                // fully attached yet) - one quick retry recovers most of
+                // those without leaving the user stuck on a black screen.
+                console.warn('MusicPlayer: playback failed after tap, retrying once', err);
+                setTimeout(() => {
+                  play(src)
+                    .then(() => {
+                      if (startedAtMs) resyncTo(startedAtMs);
+                    })
+                    .catch((err2) => console.error('MusicPlayer: retry also failed', err2));
+                }, 300);
+              });
             hideGate();
             resolve('gesture');
           };
