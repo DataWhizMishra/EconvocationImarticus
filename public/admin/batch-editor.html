@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Batch Editor — E-Convocation Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/theme.css">
+<style>
+  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px;}
+  .back-link{font-size:11px;color:var(--muted);text-decoration:none;}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px;border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:0;}
+  .tab-btn{background:none;border:none;color:var(--muted);font-family:var(--fn);font-size:12px;font-weight:700;padding:10px 14px;cursor:pointer;border-bottom:2px solid transparent;}
+  .tab-btn.active{color:var(--brand);border-bottom-color:var(--brand);}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
+  @media (max-width:700px){.grid2,.grid3{grid-template-columns:1fr;}}
+  .row-item{display:flex;align-items:center;gap:12px;padding:12px;border-radius:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);margin-bottom:8px;flex-wrap:wrap;}
+  .avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;flex-shrink:0;overflow:hidden;position:relative;cursor:pointer;}
+  .avatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+  .avatar-overlay{position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;font-size:13px;opacity:0;transition:.15s;}
+  .avatar:hover .avatar-overlay{opacity:1;}
+  .row-name{font-size:13px;font-weight:700;flex:1;min-width:120px;}
+  .row-sub{font-size:10px;color:var(--muted);}
+  .icon-btn{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);border-radius:7px;padding:6px 10px;font-size:11px;cursor:pointer;font-family:var(--fn);}
+  .icon-btn.danger{color:var(--orange);border-color:rgba(255,92,53,.25);}
+  .section-title{font-weight:700;font-size:14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;}
+  .msg-item{margin-bottom:14px;}
+  .msg-item .row-name{margin-bottom:6px;}
+  .content-card{margin-bottom:10px;}
+  .join-link-box{display:flex;align-items:center;gap:8px;background:rgba(0,200,150,.07);border:1px solid rgba(0,200,150,.2);border-radius:8px;padding:10px 14px;font-size:12px;margin-bottom:16px;flex-wrap:wrap;}
+  .join-link-box code{color:var(--brand);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back-link" href="/admin/dashboard.html">← All Batches</a>
+    <div style="display:flex;gap:8px;">
+      <a class="btn small secondary" id="presentLink" href="#" target="_blank">▶️ Present</a>
+      <button class="btn small" id="statusBtn">Go Live</button>
+    </div>
+  </div>
+
+  <div class="eyebrow" id="batchProgram">Loading…</div>
+  <h1 class="page-tt" id="batchName">…</h1>
+  <div class="join-link-box" id="joinLinkBox" style="display:none;"></div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="settings">Settings</button>
+    <button class="tab-btn" data-tab="roster">Roster & Photos</button>
+    <button class="tab-btn" data-tab="messages">Messages</button>
+    <button class="tab-btn" data-tab="certs">Special Certs</button>
+    <button class="tab-btn" data-tab="awards">Awards</button>
+    <button class="tab-btn" data-tab="quiz">Quiz & Polls</button>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="tab-panel active" id="tab-settings">
+    <div class="card">
+      <div class="section-title">Event Settings</div>
+      <div id="settingsError"></div>
+      <div class="grid2">
+        <div class="field"><label class="field-label">Batch Name</label><input type="text" id="sName"></div>
+        <div class="field"><label class="field-label">Program Name</label><input type="text" id="sProgram"></div>
+        <div class="field"><label class="field-label">Cohort Label</label><input type="text" id="sCohort" placeholder="e.g. Gen AI Batch 01"></div>
+        <div class="field"><label class="field-label">Event Date</label><input type="date" id="sDate"></div>
+        <div class="field"><label class="field-label">Graduates Count</label><input type="number" id="sGrads"></div>
+        <div class="field"><label class="field-label">Hours (e.g. 180+)</label><input type="text" id="sHours"></div>
+        <div class="field"><label class="field-label">Projects Count</label><input type="number" id="sProjects"></div>
+        <div class="field"><label class="field-label">Default Music URL (mp3)</label><input type="text" id="sMusic" placeholder="https://.../loop.mp3"></div>
+      </div>
+      <div class="field"><label class="field-label">Hero Title</label><input type="text" id="sHeroTitle" placeholder="e.g. Gen AI"></div>
+      <div class="field"><label class="field-label">Hero Title Accent</label><input type="text" id="sHeroAccent" placeholder="e.g. Batch 01"></div>
+      <div class="field"><label class="field-label">Hero Subtitle</label><input type="text" id="sHeroSub"></div>
+      <div class="field"><label class="field-label">Organization Message (S5) — use {{cohortLabel}}</label><textarea id="sOrgMsg"></textarea></div>
+      <div class="field"><label class="field-label">Closing Message (S11)</label><textarea id="sClosingMsg"></textarea></div>
+      <div class="grid2">
+        <div class="field"><label class="field-label">LinkedIn Alumni Link</label><input type="text" id="sLinkedin"></div>
+        <div class="field"><label class="field-label">Memory Wall Link</label><input type="text" id="sMemoryWall"></div>
+      </div>
+      <button class="btn" id="saveSettingsBtn">💾 Save Settings</button>
+    </div>
+  </div>
+
+  <!-- ROSTER -->
+  <div class="tab-panel" id="tab-roster">
+    <div class="card" style="margin-bottom:16px;">
+      <div class="section-title">Bulk Import Learners</div>
+      <div class="field"><textarea id="bulkNames" placeholder="Paste one learner name per line…" style="min-height:110px;"></textarea></div>
+      <button class="btn" id="importBtn">📋 Import Names</button>
+    </div>
+    <div class="card">
+      <div class="section-title">Roster (<span id="rosterCount">0</span>) <button class="btn small secondary" id="addLearnerBtn">+ Add One</button></div>
+      <div id="rosterList"></div>
+    </div>
+  </div>
+
+  <!-- MESSAGES -->
+  <div class="tab-panel" id="tab-messages">
+    <div class="card">
+      <div class="section-title">Personal Messages <button class="btn small" id="saveMessagesBtn">💾 Save All</button></div>
+      <div class="page-sub">One message per graduate, shown on the Personal Messages slide.</div>
+      <div id="messagesList"></div>
+    </div>
+  </div>
+
+  <!-- SPECIAL CERTS -->
+  <div class="tab-panel" id="tab-certs">
+    <div class="card" style="margin-bottom:16px;">
+      <div class="section-title">Add Special Certificate</div>
+      <div class="grid3">
+        <div class="field"><label class="field-label">Type</label>
+          <select id="certType">
+            <option value="att">Attendance</option><option value="spr">Spirit</option>
+            <option value="inn">Innovation</option><option value="col">Collaboration</option>
+            <option value="atv">Creative</option><option value="custom">Custom</option>
+          </select>
+        </div>
+        <div class="field"><label class="field-label">Icon (emoji)</label><input type="text" id="certIcon" value="🏅"></div>
+        <div class="field"><label class="field-label">Label</label><input type="text" id="certLabel" placeholder="e.g. Perfect Attendance"></div>
+      </div>
+      <div class="grid2">
+        <div class="field"><label class="field-label">Award Title</label><input type="text" id="certAwardTitle"></div>
+        <div class="field"><label class="field-label">Winner(s) — comma separated</label><input type="text" id="certWinners"></div>
+      </div>
+      <div class="field"><label class="field-label">Description</label><textarea id="certDesc"></textarea></div>
+      <button class="btn" id="addCertBtn">+ Add Certificate</button>
+    </div>
+    <div id="certsList"></div>
+  </div>
+
+  <!-- AWARDS -->
+  <div class="tab-panel" id="tab-awards">
+    <div class="card" style="margin-bottom:16px;">
+      <div class="section-title">Add Peer-Voted Award</div>
+      <div class="grid3">
+        <div class="field"><label class="field-label">Category</label><input type="text" id="awardCategory" placeholder="e.g. Heart of the Batch"></div>
+        <div class="field"><label class="field-label">Winner Name</label><input type="text" id="awardWinner"></div>
+        <div class="field"><label class="field-label">Winner Role</label><input type="text" id="awardRole" placeholder="e.g. Gen AI · Batch 01"></div>
+      </div>
+      <button class="btn" id="addAwardBtn">+ Add Award</button>
+    </div>
+    <div id="awardsList"></div>
+  </div>
+
+  <!-- QUIZ / POLLS -->
+  <div class="tab-panel" id="tab-quiz">
+    <div class="card" style="margin-bottom:16px;">
+      <div class="section-title">Add Quiz / Poll Question</div>
+      <div class="grid2">
+        <div class="field"><label class="field-label">Kind</label>
+          <select id="qKind"><option value="quiz">Quiz (has a correct answer)</option><option value="poll">Poll (just a tally, no right answer)</option></select>
+        </div>
+        <div class="field"><label class="field-label">Timer (seconds)</label><input type="number" id="qTimer" value="30"></div>
+      </div>
+      <div class="field"><label class="field-label">Question Text</label><textarea id="qText"></textarea></div>
+      <div class="grid2">
+        <div class="field"><label class="field-label">Option A</label><input type="text" id="qOptA"></div>
+        <div class="field"><label class="field-label">Option B</label><input type="text" id="qOptB"></div>
+        <div class="field"><label class="field-label">Option C</label><input type="text" id="qOptC"></div>
+        <div class="field"><label class="field-label">Option D</label><input type="text" id="qOptD"></div>
+      </div>
+      <div class="grid2">
+        <div class="field" id="correctWrap"><label class="field-label">Correct Option</label>
+          <select id="qCorrect"><option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option></select>
+        </div>
+        <div class="field"><label class="field-label">Explanation (shown on reveal)</label><input type="text" id="qExplanation"></div>
+      </div>
+      <button class="btn" id="addQuestionBtn">+ Add Question</button>
+    </div>
+    <div id="questionsList"></div>
+  </div>
+</div>
+
+<script src="/assets/api.js"></script>
+<script src="/assets/auth-client.js"></script>
+<script src="/assets/photo-resize.js"></script>
+<script>
+const token = AuthClient.requireMentorOrRedirect();
+const batchId = new URLSearchParams(window.location.search).get('id');
+let batch = null;
+let roster = [];
+
+if(!batchId){ document.body.innerHTML = '<div class="wrap"><div class="error-box">Missing batch id.</div></div>'; }
+
+/* ---------- TABS ---------- */
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+function initials(name){ return (name||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase(); }
+
+/* ---------- LOAD BATCH + SETTINGS ---------- */
+async function loadBatch(){
+  batch = await Api.apiGet('batches-get', { id: batchId }, token);
+  document.getElementById('batchProgram').textContent = batch.programName || 'Imarticus Learning';
+  document.getElementById('batchName').textContent = batch.name;
+  document.getElementById('presentLink').href = `/live/${batch.joinSlug}?mode=mentor`;
+  document.getElementById('statusBtn').textContent = batch.status === 'live' ? '⏸ Set to Draft' : '🟢 Go Live';
+
+  const joinBox = document.getElementById('joinLinkBox');
+  joinBox.style.display = 'flex';
+  const fullUrl = `${window.location.origin}/join/${batch.joinSlug}`;
+  joinBox.innerHTML = `<span>Learner join link:</span> <code>${fullUrl}</code> <button class="icon-btn" id="copyLinkBtn">Copy</button>`;
+  document.getElementById('copyLinkBtn').addEventListener('click', () => {
+    navigator.clipboard.writeText(fullUrl).then(() => {
+      document.getElementById('copyLinkBtn').textContent = 'Copied!';
+      setTimeout(() => { document.getElementById('copyLinkBtn').textContent = 'Copy'; }, 1500);
+    });
+  });
+
+  document.getElementById('sName').value = batch.name || '';
+  document.getElementById('sProgram').value = batch.programName || '';
+  document.getElementById('sCohort').value = batch.cohortLabel || '';
+  document.getElementById('sDate').value = batch.eventDateISO || '';
+  document.getElementById('sMusic').value = batch.musicDefaultUrl || '';
+  const s = batch.settings || {};
+  document.getElementById('sGrads').value = (s.stats && s.stats.graduates) || '';
+  document.getElementById('sHours').value = (s.stats && s.stats.hours) || '';
+  document.getElementById('sProjects').value = (s.stats && s.stats.projects) || '';
+  document.getElementById('sHeroTitle').value = s.heroTitle || '';
+  document.getElementById('sHeroAccent').value = s.heroTitleAccent || '';
+  document.getElementById('sHeroSub').value = s.heroSubtitle || '';
+  document.getElementById('sOrgMsg').value = s.orgMessage || '';
+  document.getElementById('sClosingMsg').value = s.closingMessage || '';
+  document.getElementById('sLinkedin').value = (s.links && s.links.linkedinAlumni) || '';
+  document.getElementById('sMemoryWall').value = (s.links && s.links.memoryWall) || '';
+}
+
+document.getElementById('statusBtn').addEventListener('click', async () => {
+  const newStatus = batch.status === 'live' ? 'draft' : 'live';
+  batch = await Api.apiPost('batches-update', { id: batchId, status: newStatus }, token);
+  document.getElementById('statusBtn').textContent = batch.status === 'live' ? '⏸ Set to Draft' : '🟢 Go Live';
+});
+
+document.getElementById('saveSettingsBtn').addEventListener('click', async () => {
+  const errBox = document.getElementById('settingsError');
+  errBox.innerHTML = '';
+  const btn = document.getElementById('saveSettingsBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try{
+    batch = await Api.apiPost('batches-update', {
+      id: batchId,
+      name: document.getElementById('sName').value.trim(),
+      programName: document.getElementById('sProgram').value.trim(),
+      cohortLabel: document.getElementById('sCohort').value.trim(),
+      eventDateISO: document.getElementById('sDate').value,
+      musicDefaultUrl: document.getElementById('sMusic').value.trim(),
+      settings: {
+        stats: {
+          graduates: Number(document.getElementById('sGrads').value) || 0,
+          hours: document.getElementById('sHours').value.trim(),
+          projects: Number(document.getElementById('sProjects').value) || 0,
+        },
+        heroTitle: document.getElementById('sHeroTitle').value.trim(),
+        heroTitleAccent: document.getElementById('sHeroAccent').value.trim(),
+        heroSubtitle: document.getElementById('sHeroSub').value.trim(),
+        orgMessage: document.getElementById('sOrgMsg').value,
+        closingMessage: document.getElementById('sClosingMsg').value,
+        links: {
+          linkedinAlumni: document.getElementById('sLinkedin').value.trim(),
+          memoryWall: document.getElementById('sMemoryWall').value.trim(),
+        },
+      },
+    }, token);
+    document.getElementById('batchName').textContent = batch.name;
+  }catch(e){
+    errBox.innerHTML = `<div class="error-box">${e.message}</div>`;
+  }
+  btn.disabled = false; btn.textContent = '💾 Save Settings';
+});
+
+/* ---------- ROSTER ---------- */
+async function loadRoster(){
+  roster = await Api.apiGet('roster-list', { batchId }, token);
+  document.getElementById('rosterCount').textContent = roster.length;
+  const list = document.getElementById('rosterList');
+  list.innerHTML = '';
+  if(!roster.length){ list.innerHTML = '<div class="empty-note">No learners yet — bulk import above.</div>'; return; }
+  roster.forEach(r => {
+    const el = document.createElement('div');
+    el.className = 'row-item';
+    el.innerHTML = `
+      <div class="avatar" style="background:${r.colorHex};" data-learner="${r.learnerId}">
+        ${r.photoUrl ? `<img src="${r.photoUrl}" alt="">` : initials(r.name)}
+        <div class="avatar-overlay">📷</div>
+      </div>
+      <input type="file" accept="image/*" style="display:none;" data-photo-input="${r.learnerId}">
+      <div class="row-name">${r.name}${r.joined ? ' <span class="badge">Joined</span>' : ''}</div>
+      <input type="text" placeholder="Dream job" value="${r.dreamJobTitle||''}" style="max-width:150px;" data-dreamjob="${r.learnerId}">
+      <button class="icon-btn danger" data-delete="${r.learnerId}">Delete</button>
+    `;
+    list.appendChild(el);
+  });
+
+  list.querySelectorAll('[data-learner]').forEach(av => {
+    av.addEventListener('click', () => {
+      list.querySelector(`[data-photo-input="${av.dataset.learner}"]`).click();
+    });
+  });
+  list.querySelectorAll('[data-photo-input]').forEach(input => {
+    input.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if(!file) return;
+      const learnerId = input.dataset.photoInput;
+      const avatar = list.querySelector(`[data-learner="${learnerId}"]`);
+      avatar.innerHTML = '<div class="spinner" style="width:16px;height:16px;margin:0;"></div>';
+      try{
+        const dataBase64 = await PhotoResize.resizeToBase64(file, 480, 0.82);
+        const res = await Api.apiPost('roster-photo-upload', {
+          batchId, learnerId, filename: file.name, contentType: 'image/jpeg', dataBase64,
+        }, token);
+        avatar.innerHTML = `<img src="${res.photoUrl}" alt=""><div class="avatar-overlay">📷</div>`;
+      }catch(err){
+        alert('Photo upload failed: ' + err.message);
+        loadRoster();
+      }
+    });
+  });
+  list.querySelectorAll('[data-dreamjob]').forEach(input => {
+    input.addEventListener('change', async () => {
+      await Api.apiPost('roster-upsert', {
+        batchId, learnerId: input.dataset.dreamjob,
+        name: roster.find(r=>r.learnerId===input.dataset.dreamjob).name,
+        dreamJobTitle: input.value.trim(),
+      }, token);
+    });
+  });
+  list.querySelectorAll('[data-delete]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if(!confirm('Remove this learner from the roster?')) return;
+      await Api.apiPost('roster-delete', { batchId, learnerId: btn.dataset.delete }, token);
+      loadRoster();
+    });
+  });
+}
+
+document.getElementById('importBtn').addEventListener('click', async () => {
+  const namesText = document.getElementById('bulkNames').value;
+  if(!namesText.trim()) return;
+  const btn = document.getElementById('importBtn');
+  btn.disabled = true; btn.textContent = 'Importing…';
+  try{
+    await Api.apiPost('roster-bulk-import', { batchId, namesText }, token);
+    document.getElementById('bulkNames').value = '';
+    await loadRoster();
+  }catch(e){ alert(e.message); }
+  btn.disabled = false; btn.textContent = '📋 Import Names';
+});
+
+document.getElementById('addLearnerBtn').addEventListener('click', async () => {
+  const name = prompt('Learner name:');
+  if(!name || !name.trim()) return;
+  await Api.apiPost('roster-upsert', { batchId, name: name.trim() }, token);
+  loadRoster();
+});
+
+/* ---------- MESSAGES ---------- */
+async function loadMessages(){
+  const messages = await Api.apiGet('messages-list', { batchId }, token);
+  const byLearner = {};
+  messages.forEach(m => { byLearner[m.learnerId] = m.messageText; });
+  const list = document.getElementById('messagesList');
+  list.innerHTML = '';
+  if(!roster.length){ list.innerHTML = '<div class="empty-note">Import a roster first.</div>'; return; }
+  roster.forEach(r => {
+    const el = document.createElement('div');
+    el.className = 'msg-item';
+    el.innerHTML = `<div class="row-name">${r.name}</div><textarea data-msg="${r.learnerId}" placeholder="A personal note for ${r.name.split(' ')[0]}…">${byLearner[r.learnerId] || ''}</textarea>`;
+    list.appendChild(el);
+  });
+}
+document.getElementById('saveMessagesBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('saveMessagesBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  const messages = roster.map(r => ({
+    learnerId: r.learnerId,
+    learnerName: r.name,
+    messageText: document.querySelector(`[data-msg="${r.learnerId}"]`).value,
+  }));
+  try{ await Api.apiPost('messages-save', { batchId, messages }, token); }
+  catch(e){ alert(e.message); }
+  btn.disabled = false; btn.textContent = '💾 Save All';
+});
+
+/* ---------- SPECIAL CERTS ---------- */
+async function loadCerts(){
+  const certs = await Api.apiGet('special-certs-list', { batchId }, token);
+  const list = document.getElementById('certsList');
+  list.innerHTML = '';
+  if(!certs.length){ list.innerHTML = '<div class="empty-note">No special certificates yet.</div>'; return; }
+  certs.forEach(c => {
+    const el = document.createElement('div');
+    el.className = 'card content-card row-item';
+    el.innerHTML = `<div style="font-size:22px;">${c.icon}</div>
+      <div style="flex:1;min-width:180px;">
+        <div class="row-name">${c.label}</div>
+        <div class="row-sub">${c.awardTitle} — ${c.winners.join(', ')}</div>
+      </div>
+      <button class="icon-btn danger" data-cert-delete="${c.certId}">Delete</button>`;
+    list.appendChild(el);
+  });
+  list.querySelectorAll('[data-cert-delete]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      await Api.apiPost('special-certs-delete', { batchId, certId: btn.dataset.certDelete }, token);
+      loadCerts();
+    });
+  });
+}
+document.getElementById('addCertBtn').addEventListener('click', async () => {
+  const label = document.getElementById('certLabel').value.trim();
+  if(!label) return alert('Label is required.');
+  await Api.apiPost('special-certs-upsert', {
+    batchId,
+    type: document.getElementById('certType').value,
+    icon: document.getElementById('certIcon').value.trim() || '🏅',
+    label,
+    awardTitle: document.getElementById('certAwardTitle').value.trim(),
+    winners: document.getElementById('certWinners').value.split(',').map(s=>s.trim()).filter(Boolean),
+    description: document.getElementById('certDesc').value.trim(),
+  }, token);
+  ['certLabel','certAwardTitle','certWinners','certDesc'].forEach(id => document.getElementById(id).value = '');
+  loadCerts();
+});
+
+/* ---------- AWARDS ---------- */
+async function loadAwards(){
+  const awards = await Api.apiGet('awards-list', { batchId }, token);
+  const list = document.getElementById('awardsList');
+  list.innerHTML = '';
+  if(!awards.length){ list.innerHTML = '<div class="empty-note">No awards yet.</div>'; return; }
+  awards.forEach(a => {
+    const el = document.createElement('div');
+    el.className = 'card content-card row-item';
+    el.innerHTML = `<div style="flex:1;min-width:180px;">
+        <div class="row-name">${a.category}</div>
+        <div class="row-sub">🏆 ${a.winnerName} — ${a.winnerRole||''}</div>
+      </div>
+      <button class="icon-btn danger" data-award-delete="${a.awardId}">Delete</button>`;
+    list.appendChild(el);
+  });
+  list.querySelectorAll('[data-award-delete]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      await Api.apiPost('awards-delete', { batchId, awardId: btn.dataset.awardDelete }, token);
+      loadAwards();
+    });
+  });
+}
+document.getElementById('addAwardBtn').addEventListener('click', async () => {
+  const category = document.getElementById('awardCategory').value.trim();
+  const winnerName = document.getElementById('awardWinner').value.trim();
+  if(!category || !winnerName) return alert('Category and winner name are required.');
+  await Api.apiPost('awards-upsert', {
+    batchId, category, winnerName,
+    winnerRole: document.getElementById('awardRole').value.trim(),
+  }, token);
+  ['awardCategory','awardWinner','awardRole'].forEach(id => document.getElementById(id).value = '');
+  loadAwards();
+});
+
+/* ---------- QUIZ / POLLS ---------- */
+document.getElementById('qKind').addEventListener('change', (e) => {
+  document.getElementById('correctWrap').style.display = e.target.value === 'quiz' ? 'block' : 'none';
+});
+async function loadQuestions(){
+  const questions = await Api.apiGet('questions-list', { batchId }, token);
+  const list = document.getElementById('questionsList');
+  list.innerHTML = '';
+  if(!questions.length){ list.innerHTML = '<div class="empty-note">No questions yet.</div>'; return; }
+  questions.forEach(q => {
+    const el = document.createElement('div');
+    el.className = 'card content-card row-item';
+    el.innerHTML = `<div style="flex:1;min-width:180px;">
+        <div class="row-name">${q.kind === 'quiz' ? '🧠' : '🗳️'} ${q.text}</div>
+        <div class="row-sub">${q.options.filter(Boolean).join(' · ')}</div>
+      </div>
+      <button class="icon-btn danger" data-q-delete="${q.questionId}">Delete</button>`;
+    list.appendChild(el);
+  });
+  list.querySelectorAll('[data-q-delete]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      await Api.apiPost('questions-delete', { batchId, questionId: btn.dataset.qDelete }, token);
+      loadQuestions();
+    });
+  });
+}
+document.getElementById('addQuestionBtn').addEventListener('click', async () => {
+  const text = document.getElementById('qText').value.trim();
+  if(!text) return alert('Question text is required.');
+  const kind = document.getElementById('qKind').value;
+  await Api.apiPost('questions-upsert', {
+    batchId, kind, text,
+    optionA: document.getElementById('qOptA').value.trim(),
+    optionB: document.getElementById('qOptB').value.trim(),
+    optionC: document.getElementById('qOptC').value.trim(),
+    optionD: document.getElementById('qOptD').value.trim(),
+    correctIndex: kind === 'quiz' ? Number(document.getElementById('qCorrect').value) : undefined,
+    explanation: document.getElementById('qExplanation').value.trim(),
+    timerSeconds: Number(document.getElementById('qTimer').value) || 30,
+  }, token);
+  ['qText','qOptA','qOptB','qOptC','qOptD','qExplanation'].forEach(id => document.getElementById(id).value = '');
+  loadQuestions();
+});
+
+/* ---------- INIT ---------- */
+async function init(){
+  try{
+    await loadBatch();
+    await loadRoster();
+    await Promise.all([loadMessages(), loadCerts(), loadAwards(), loadQuestions()]);
+  }catch(e){
+    if(e.statusCode === 401){ AuthClient.clearMentorToken(); AuthClient.requireMentorOrRedirect(); return; }
+    alert('Failed to load batch: ' + e.message);
+  }
+}
+if(batchId) init();
+</script>
+</body>
+</html>

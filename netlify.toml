@@ -1,0 +1,27 @@
+[build]
+  publish = "public"
+  command = ""
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/join/:slug"
+  to = "/join.html?slug=:slug"
+  status = 200
+
+[[redirects]]
+  from = "/live/:slug"
+  to = "/live.html?slug=:slug"
+  status = 200
+
+[[redirects]]
+  from = "/admin"
+  to = "/admin/login.html"
+  status = 200

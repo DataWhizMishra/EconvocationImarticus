@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Batches — E-Convocation Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/theme.css">
+<style>
+  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:26px;}
+  .brand-row{display:flex;align-items:center;gap:10px;}
+  .brand-logo{width:34px;height:34px;background:var(--brand);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;color:#000;}
+  .batch-grid{display:grid;gap:14px;margin-bottom:36px;}
+  .batch-card{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+  .batch-info{flex:1;min-width:200px;}
+  .batch-name{font-family:var(--fb);font-size:22px;letter-spacing:1px;margin-bottom:4px;}
+  .batch-meta{font-size:11px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  .batch-actions{display:flex;gap:8px;flex-wrap:wrap;}
+  .new-batch-form{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .new-batch-form .full{grid-column:1/-1;}
+  @media (max-width:600px){.new-batch-form{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand-row">
+      <div class="brand-logo">IL</div>
+      <div>
+        <div style="font-size:13px;font-weight:700;">Imarticus Learning</div>
+        <div style="font-size:10px;color:var(--muted);">E-Convocation Admin</div>
+      </div>
+    </div>
+    <button class="btn secondary small" id="logoutBtn">Log Out</button>
+  </div>
+
+  <div class="eyebrow">Your Batches</div>
+  <h1 class="page-tt">Convocations</h1>
+  <div class="page-sub">Create a convocation per batch, then open its editor to build the roster, quiz, awards, and share the join link.</div>
+
+  <div id="loadingBox" class="spinner"></div>
+  <div id="batchGrid" class="batch-grid" style="display:none;"></div>
+  <div id="emptyNote" class="empty-note" style="display:none;">No batches yet — create your first one below.</div>
+
+  <div class="card">
+    <div style="font-weight:700;font-size:14px;margin-bottom:16px;">+ New Batch</div>
+    <div id="createError"></div>
+    <div class="new-batch-form">
+      <div class="field">
+        <label class="field-label">Batch Name</label>
+        <input type="text" id="fName" placeholder="e.g. KPMG FAP">
+      </div>
+      <div class="field">
+        <label class="field-label">Program Name</label>
+        <input type="text" id="fProgram" placeholder="e.g. Financial Analysis Program">
+      </div>
+      <div class="field">
+        <label class="field-label">Event Date</label>
+        <input type="date" id="fDate">
+      </div>
+      <div class="field">
+        <label class="field-label">Join Link Slug (optional)</label>
+        <input type="text" id="fSlug" placeholder="auto-generated from name">
+      </div>
+    </div>
+    <button class="btn" id="createBtn">+ Create Batch</button>
+  </div>
+</div>
+
+<script src="/assets/api.js"></script>
+<script src="/assets/auth-client.js"></script>
+<script>
+const token = AuthClient.requireMentorOrRedirect();
+
+function statusBadge(status){
+  if(status === 'live') return `<span class="badge">🟢 Live</span>`;
+  if(status === 'archived') return `<span class="badge archived">Archived</span>`;
+  return `<span class="badge draft">Draft</span>`;
+}
+
+async function loadBatches(){
+  try{
+    const batches = await Api.apiGet('batches-list', null, token);
+    document.getElementById('loadingBox').style.display = 'none';
+    if(!batches.length){
+      document.getElementById('emptyNote').style.display = 'block';
+      return;
+    }
+    const grid = document.getElementById('batchGrid');
+    grid.style.display = 'grid';
+    grid.innerHTML = '';
+    batches.forEach(b => {
+      const el = document.createElement('div');
+      el.className = 'card batch-card';
+      el.innerHTML = `
+        <div class="batch-info">
+          <div class="batch-name">${b.name}</div>
+          <div class="batch-meta">
+            ${statusBadge(b.status)}
+            <span>${b.programName || 'No program set'}</span>
+            <span>·</span>
+            <span>/join/${b.joinSlug}</span>
+          </div>
+        </div>
+        <div class="batch-actions">
+          <a class="btn small secondary" href="/admin/batch-editor.html?id=${b.id}">✏️ Manage</a>
+          <a class="btn small secondary" href="/live/${b.joinSlug}?mode=mentor" target="_blank">▶️ Present</a>
+        </div>
+      `;
+      grid.appendChild(el);
+    });
+  }catch(e){
+    if(e.statusCode === 401){ AuthClient.clearMentorToken(); AuthClient.requireMentorOrRedirect(); return; }
+    document.getElementById('loadingBox').style.display = 'none';
+    document.getElementById('emptyNote').style.display = 'block';
+    document.getElementById('emptyNote').textContent = 'Could not load batches: ' + e.message;
+  }
+}
+
+document.getElementById('createBtn').addEventListener('click', async () => {
+  const errorBox = document.getElementById('createError');
+  errorBox.innerHTML = '';
+  const name = document.getElementById('fName').value.trim();
+  if(!name){ errorBox.innerHTML = '<div class="error-box">Batch name is required.</div>'; return; }
+  const btn = document.getElementById('createBtn');
+  btn.disabled = true; btn.textContent = 'Creating…';
+  try{
+    const batch = await Api.apiPost('batches-create', {
+      name,
+      programName: document.getElementById('fProgram').value.trim(),
+      eventDateISO: document.getElementById('fDate').value,
+      joinSlug: document.getElementById('fSlug').value.trim(),
+    }, token);
+    window.location.href = `/admin/batch-editor.html?id=${batch.id}`;
+  }catch(e){
+    errorBox.innerHTML = `<div class="error-box">${e.message}</div>`;
+    btn.disabled = false; btn.textContent = '+ Create Batch';
+  }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  AuthClient.clearMentorToken();
+  window.location.href = '/admin/login.html';
+});
+
+if(token) loadBatches();
+</script>
+</body>
+</html>

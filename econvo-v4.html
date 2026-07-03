@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Imarticus Gen AI — E-Convocation 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --brand:#00C896;--gold:#FFD60A;--orange:#FF5C35;--pink:#FF3CAC;
+  --blue:#3B82F6;--purple:#8B5CF6;--dark:#06060E;
+  --surface:#14142A;--text:#F1EFE9;--muted:rgba(241,239,233,0.42);
+  --fn:'Outfit',sans-serif;--fb:'Bebas Neue',sans-serif;--fc:'Cormorant Garamond',serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:var(--fn);color:var(--text);}
+#app{width:100vw;height:100vh;position:relative;overflow:hidden;}
+.slide{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .5s ease;display:flex;flex-direction:column;overflow:hidden;}
+.slide.active{opacity:1;pointer-events:all;}
+.centered{justify-content:center;align-items:center;}
+
+/* ── CUE BAR ── */
+#cue{position:fixed;bottom:0;left:0;right:0;z-index:9999;background:rgba(6,6,14,.97);backdrop-filter:blur(16px);border-top:2px solid rgba(0,200,150,.18);padding:7px 14px;display:flex;align-items:center;gap:9px;}
+.ctag{font-size:8px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--brand);flex-shrink:0;background:rgba(0,200,150,.1);border:1px solid rgba(0,200,150,.22);padding:3px 9px;border-radius:100px;}
+.cmsg{font-size:11px;color:rgba(255,255,255,.6);flex:1;line-height:1.3;}
+.cmu{font-size:10px;color:var(--gold);flex-shrink:0;display:flex;align-items:center;gap:4px;white-space:nowrap;}
+.md{width:5px;height:5px;border-radius:50%;background:var(--gold);animation:mb .7s infinite;}
+@keyframes mb{0%,100%{opacity:1;}50%{opacity:.2;}}
+.cnn{font-family:var(--fb);font-size:16px;color:rgba(255,255,255,.15);flex-shrink:0;}
+.cbt{padding:5px 12px;border-radius:5px;font-size:10px;font-weight:700;border:none;cursor:pointer;font-family:var(--fn);}
+.cbt.p{background:rgba(255,255,255,.06);color:rgba(255,255,255,.45);}
+.cbt.n{background:var(--brand);color:#000;}
+.cbt-photo{padding:5px 12px;border-radius:5px;font-size:10px;font-weight:700;border:1px solid rgba(255,214,10,.3);cursor:pointer;font-family:var(--fn);background:rgba(255,214,10,.12);color:var(--gold);}
+body.hc #cue,body.hc #prog,body.hc #hint{display:none!important;}
+#prog{position:fixed;top:0;left:0;height:2px;background:linear-gradient(90deg,var(--brand),var(--blue));z-index:9998;transition:width .3s ease;}
+#hint{position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:9997;background:rgba(0,0,0,.8);border:1px solid rgba(255,255,255,.06);border-radius:6px;padding:4px 11px;font-size:9px;color:rgba(255,255,255,.32);display:flex;gap:7px;align-items:center;white-space:nowrap;}
+.kb{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:3px;padding:1px 5px;font-size:8px;font-weight:700;}
+
+/* ── PHOTO MANAGER ── */
+#photo-manager{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.93);display:none;flex-direction:column;overflow:hidden;}
+#photo-manager.open{display:flex;}
+.pm-header{background:rgba(14,14,28,1);border-bottom:2px solid rgba(0,200,150,.2);padding:14px 20px;display:flex;align-items:center;gap:14px;flex-shrink:0;}
+.pm-title{font-family:var(--fb);font-size:26px;letter-spacing:2px;color:var(--brand);}
+.pm-body{flex:1;overflow-y:auto;padding:14px 20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;}
+.pm-card{background:var(--surface);border:1.5px solid rgba(255,255,255,.08);border-radius:12px;padding:12px 10px;text-align:center;transition:.2s;}
+.pm-card:hover{border-color:rgba(0,200,150,.3);}
+.pm-avatar{width:70px;height:70px;border-radius:50%;margin:0 auto 8px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;font-family:var(--fb);font-size:24px;color:#fff;cursor:pointer;}
+.pm-avatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.pm-overlay{position:absolute;inset:0;background:rgba(0,0,0,.55);border-radius:50%;display:flex;align-items:center;justify-content:center;opacity:0;transition:.2s;font-size:20px;}
+.pm-avatar:hover .pm-overlay{opacity:1;}
+.pm-name{font-size:11px;font-weight:700;color:var(--text);margin-bottom:5px;line-height:1.3;}
+.pm-status{font-size:9px;color:var(--brand);}
+.pm-status.none{color:var(--muted);}
+.pm-file-input{display:none;}
+.pm-tip{padding:10px 20px 0;font-size:10px;color:rgba(0,200,150,.8);background:rgba(0,200,150,.06);border-bottom:1px solid rgba(0,200,150,.1);flex-shrink:0;line-height:1.6;}
+.pm-tip strong{color:#fff;}
+.pm-foot{display:flex;align-items:center;gap:10px;padding:9px 20px;background:rgba(14,14,28,1);border-top:1px solid rgba(255,255,255,.06);flex-shrink:0;}
+.pm-count{font-size:11px;color:var(--muted);flex:1;}
+.pm-count strong{color:var(--gold);}
+
+/* ── S1 LOBBY ── */
+#s1{background:radial-gradient(ellipse 90% 90% at 50% 50%,#001428 0%,var(--dark) 68%);}
+.s1g{position:absolute;inset:0;background-image:linear-gradient(rgba(0,200,150,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(0,200,150,.035) 1px,transparent 1px);background-size:56px 56px;}
+.s1glow{position:absolute;width:700px;height:700px;border-radius:50%;background:radial-gradient(circle,rgba(0,200,150,.09) 0%,transparent 65%);top:50%;left:50%;transform:translate(-50%,-50%);}
+.s1pts{position:absolute;inset:0;overflow:hidden;}
+.pt{position:absolute;border-radius:50%;animation:ptu var(--d,7s) ease-in-out infinite var(--dl,0s);}
+@keyframes ptu{0%{opacity:0;transform:translateY(100vh);}40%{opacity:.4;}100%{opacity:0;transform:translateY(-10vh);}}
+.s1i{position:relative;z-index:2;text-align:center;padding:0 28px 60px;}
+.live-p{display:inline-flex;align-items:center;gap:6px;background:rgba(255,60,172,.12);border:1px solid rgba(255,60,172,.35);color:var(--pink);padding:6px 16px;border-radius:100px;font-size:9px;font-weight:700;letter-spacing:3px;text-transform:uppercase;margin-bottom:22px;}
+.ld2{width:6px;height:6px;border-radius:50%;background:var(--pink);animation:mb .9s infinite;}
+.s1-tt{font-family:var(--fb);font-size:clamp(50px,9.5vw,112px);letter-spacing:4px;line-height:.85;margin-bottom:14px;}
+.s1-tt .tg{color:var(--brand);display:block;}
+.s1-sb{font-size:clamp(13px,1.8vw,18px);color:var(--muted);margin-bottom:28px;letter-spacing:.5px;}
+.cdr{display:flex;gap:14px;justify-content:center;margin-bottom:26px;}
+.cdb{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:12px;padding:14px 22px;text-align:center;min-width:74px;}
+.cdbn{font-family:var(--fb);font-size:clamp(30px,5.5vw,54px);color:var(--brand);line-height:1;}
+.cdbl{font-size:7px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:3px;}
+.s1ps{display:flex;gap:9px;flex-wrap:wrap;justify-content:center;}
+.s1p{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.07);border-radius:7px;padding:7px 15px;font-size:11px;color:rgba(255,255,255,.55);}
+.s1p strong{color:#fff;}
+
+/* ── S2 BATCH INTRO ── */
+#s2{background:#000;}
+.s2bg{position:absolute;inset:0;background:radial-gradient(ellipse 100% 80% at 50% 50%,#001510 0%,#000 65%);}
+.s2lns{position:absolute;inset:0;overflow:hidden;}
+.s2ln{position:absolute;height:1px;background:linear-gradient(90deg,transparent,rgba(0,200,150,.2),transparent);animation:s2lm var(--d,6s) ease-in-out infinite var(--dl,0s);}
+@keyframes s2lm{0%{transform:translateX(-100%);opacity:0;}40%{opacity:1;}100%{transform:translateX(100vw);opacity:0;}}
+.s2i{position:relative;z-index:2;text-align:center;padding:0 28px 60px;}
+.s2badge{display:inline-block;background:var(--brand);color:#000;font-size:8px;font-weight:800;letter-spacing:3px;padding:5px 15px;border-radius:100px;text-transform:uppercase;margin-bottom:18px;}
+.s2big{font-family:var(--fb);font-size:clamp(54px,11vw,124px);letter-spacing:2px;line-height:.86;margin-bottom:14px;text-shadow:0 0 60px rgba(0,200,150,.22);}
+.s2big .gb{color:var(--brand);}
+.s2desc{font-size:clamp(13px,1.8vw,18px);color:var(--muted);margin-bottom:36px;max-width:540px;margin-left:auto;margin-right:auto;line-height:1.7;}
+.s2sts{display:flex;gap:clamp(18px,4vw,52px);justify-content:center;flex-wrap:wrap;}
+.ss{text-align:center;}
+.ssn{font-family:var(--fb);font-size:clamp(30px,6vw,58px);color:var(--brand);}
+.ssl{font-size:9px;color:rgba(255,255,255,.26);letter-spacing:2px;text-transform:uppercase;margin-top:2px;}
+.sdiv{width:1px;height:40px;background:rgba(255,255,255,.07);align-self:center;}
+
+/* ── S3 PHOTO CARDS ── */
+#s3{background:var(--dark);}
+.s3w{width:100%;height:100%;display:flex;flex-direction:column;padding:14px 18px 66px;gap:10px;}
+.s3hdr{display:flex;align-items:center;gap:12px;flex-shrink:0;}
+.s3tt{font-family:var(--fb);font-size:clamp(20px,3vw,36px);letter-spacing:2px;}
+.s3cnt{font-size:10px;color:var(--brand);background:rgba(0,200,150,.09);border:1px solid rgba(0,200,150,.18);padding:3px 11px;border-radius:100px;}
+.s3-pstatus{font-size:10px;color:rgba(255,200,100,.85);background:rgba(255,200,100,.07);border:1px solid rgba(255,200,100,.22);border-radius:6px;padding:6px 12px;cursor:pointer;transition:.2s;}
+.s3-pstatus:hover{background:rgba(255,200,100,.14);}
+.s3-pstatus.done{color:rgba(0,200,150,.9);background:rgba(0,200,150,.07);border-color:rgba(0,200,150,.22);}
+.photo-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:7px;flex:1;align-content:center;}
+.photo-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:8px 5px;text-align:center;animation:pcin .4s cubic-bezier(.34,1.56,.64,1) both;}
+@keyframes pcin{from{opacity:0;transform:scale(.6);}to{opacity:1;transform:scale(1);}}
+.photo-card:hover{border-color:rgba(0,200,150,.3);transform:translateY(-3px);}
+.pc-photo{width:clamp(40px,4vw,58px);height:clamp(40px,4vw,58px);border-radius:50%;margin:0 auto 7px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;font-family:var(--fb);font-size:clamp(14px,1.8vw,22px);color:#fff;}
+.pc-photo img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:50%;z-index:2;}
+.pc-ring{position:absolute;inset:-2px;border-radius:50%;border:1.5px solid var(--c,var(--brand));opacity:.3;}
+.pc-name{font-size:clamp(7.5px,.92vw,11px);font-weight:600;color:rgba(255,255,255,.82);line-height:1.2;}
+
+/* ── S4 CERTIFICATE ── */
+#s4{background:radial-gradient(ellipse at center,#1a1000 0%,#000 70%);}
+.cgbg{position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(255,214,10,.09) 0%,transparent 65%);top:50%;left:50%;transform:translate(-50%,-50%);}
+.cconf{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:3;}
+.cfp{position:absolute;top:-10px;width:var(--w,8px);height:var(--h,8px);background:var(--c);border-radius:var(--r,2px);animation:cff var(--d,3s) ease var(--dl,0s) forwards;opacity:0;}
+@keyframes cff{0%{opacity:1;top:-10px;transform:rotate(0);}100%{opacity:0;top:110vh;transform:rotate(720deg) translateX(var(--dx,60px));}}
+.cert-ctr{position:absolute;top:14px;right:18px;z-index:10;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:7px;padding:5px 12px;font-size:9px;color:rgba(255,255,255,.38);}
+.cert-ctr strong{color:var(--gold);}
+.cert-frame{background:linear-gradient(135deg,#1c1400,#080700);border:1px solid rgba(255,214,10,.28);border-radius:16px;padding:clamp(18px,2.8vw,38px) clamp(24px,3.8vw,50px);text-align:center;max-width:min(520px,88vw);box-shadow:0 0 60px rgba(255,214,10,.05);position:relative;z-index:2;}
+.cert-photo-ring{width:66px;height:66px;border-radius:50%;margin:0 auto 12px;position:relative;background:rgba(255,214,10,.1);border:2px solid rgba(255,214,10,.3);display:flex;align-items:center;justify-content:center;font-family:var(--fb);font-size:22px;color:var(--gold);overflow:hidden;}
+.cert-photo-ring img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.cftop{display:flex;align-items:center;gap:9px;justify-content:center;margin-bottom:12px;}
+.cflog{width:34px;height:34px;background:var(--brand);border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;color:#000;}
+.cfo{font-size:11px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:1px;}
+.cfh{font-size:8px;letter-spacing:4px;text-transform:uppercase;color:rgba(255,214,10,.55);margin-bottom:11px;}
+.cfp2{font-size:11px;color:rgba(255,255,255,.3);margin-bottom:6px;}
+.cn{font-family:var(--fc);font-size:clamp(26px,5vw,48px);font-weight:700;color:var(--gold);line-height:1;margin-bottom:7px;animation:ng 2.5s ease-in-out infinite;}
+@keyframes ng{0%,100%{text-shadow:0 0 28px rgba(255,214,10,.4);}50%{text-shadow:0 0 56px rgba(255,214,10,.85);}}
+.cfc{font-size:12px;color:rgba(255,255,255,.45);margin-bottom:11px;}
+.cfbg{display:inline-flex;align-items:center;gap:6px;background:rgba(255,214,10,.09);border:1px solid rgba(255,214,10,.22);color:var(--gold);padding:5px 15px;border-radius:100px;font-size:10px;font-weight:700;margin-bottom:14px;}
+.cfline{height:1px;background:linear-gradient(90deg,transparent,rgba(255,214,10,.22),transparent);margin:10px 0;}
+.cff{display:flex;justify-content:space-between;align-items:flex-end;}
+.cfsign{text-align:center;}
+.cfsb{height:1px;background:rgba(255,255,255,.1);margin-bottom:4px;width:80px;}
+.cfsn{font-size:9px;color:rgba(255,255,255,.26);}
+.cfdate{font-size:9px;color:rgba(255,255,255,.22);}
+
+/* ── S5 MESSAGES ── */
+#s5{background:var(--dark);}
+.s5w{width:100%;height:100%;display:flex;flex-direction:column;padding:14px 22px 66px;gap:10px;}
+.il-msg{background:linear-gradient(135deg,rgba(0,200,150,.1),rgba(0,200,150,.03));border:1px solid rgba(0,200,150,.28);border-radius:14px;padding:16px 22px;text-align:center;position:relative;overflow:hidden;flex-shrink:0;}
+.il-msg::before{content:'IMARTICUS';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:var(--fb);font-size:100px;color:rgba(0,200,150,.04);white-space:nowrap;pointer-events:none;}
+.il-logo-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px;}
+.il-logo{width:30px;height:30px;background:var(--brand);border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:11px;color:#000;}
+.il-org{font-size:12px;font-weight:700;color:var(--brand);letter-spacing:1px;}
+.il-msg-text{font-family:var(--fc);font-size:clamp(13px,1.9vw,18px);font-style:italic;line-height:1.65;color:rgba(255,255,255,.85);position:relative;z-index:1;}
+.il-msg-text .ilg{color:var(--brand);}
+.ind-msg-title{font-size:9px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--gold);flex-shrink:0;}
+.msg-scroll{flex:1;overflow-y:auto;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;align-content:start;}
+.msg-scroll::-webkit-scrollbar{width:3px;}
+.msg-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);}
+.ind-card{background:var(--surface);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:11px 12px;animation:mcin .4s ease both;}
+@keyframes mcin{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+.ind-card:hover{border-color:rgba(0,200,150,.22);}
+.ind-card-top{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+.ind-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--fb);font-size:11px;color:#fff;flex-shrink:0;overflow:hidden;position:relative;}
+.ind-av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.ind-name{font-size:11px;font-weight:700;color:var(--text);}
+.ind-msg-body{font-size:10px;color:var(--muted);line-height:1.6;font-style:italic;}
+
+/* ── S6 SPECIAL CERTS ── */
+#s6{background:var(--dark);}
+.sc-wrap{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px 22px 66px;gap:14px;}
+.sc-ey{font-size:8px;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(--gold);}
+.sc-tt{font-family:var(--fb);font-size:clamp(22px,4.5vw,50px);letter-spacing:2px;}
+.sc-row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;}
+.sc-card{border-radius:16px;padding:clamp(14px,2vw,24px);text-align:center;max-width:200px;position:relative;overflow:hidden;animation:scp .6s cubic-bezier(.34,1.56,.64,1) both;}
+@keyframes scp{from{opacity:0;transform:scale(.7) rotate(-3deg);}to{opacity:1;transform:none;}}
+.sc-card.att{background:linear-gradient(135deg,#001838,#000A1C);border:1.5px solid rgba(59,130,246,.4);}
+.sc-card.spr{background:linear-gradient(135deg,#001618,#000A08);border:1.5px solid rgba(0,200,150,.4);}
+.sc-card.inn{background:linear-gradient(135deg,#1a0800,#0a0300);border:1.5px solid rgba(255,92,53,.4);}
+.sc-card.col{background:linear-gradient(135deg,#181000,#0a0600);border:1.5px solid rgba(255,214,10,.28);}
+.sc-card.atv{background:linear-gradient(135deg,#180014,#08000A);border:1.5px solid rgba(139,92,246,.4);}
+.sc-rib{position:absolute;top:0;left:50%;transform:translateX(-50%);width:65%;height:2.5px;border-radius:0 0 3px 3px;}
+.att .sc-rib{background:var(--blue);}.atv .sc-rib{background:var(--purple);}.spr .sc-rib{background:var(--brand);}.inn .sc-rib{background:var(--orange);}.col .sc-rib{background:var(--gold);}
+.sc-ico{font-size:clamp(26px,3.2vw,38px);margin-bottom:7px;display:block;}
+.sc-lb{font-size:7px;font-weight:700;letter-spacing:3px;text-transform:uppercase;margin-bottom:4px;}
+.att .sc-lb{color:var(--blue);}.atv .sc-lb{color:var(--purple);}.spr .sc-lb{color:var(--brand);}.inn .sc-lb{color:var(--orange);}.col .sc-lb{color:var(--gold);}
+.sc-aw{font-size:clamp(10px,1.4vw,14px);font-weight:700;color:#fff;margin-bottom:7px;line-height:1.25;}
+.sc-win{font-family:var(--fc);font-weight:700;line-height:1.15;margin-bottom:3px;font-size:clamp(13px,1.8vw,20px);}
+.att .sc-win{color:rgba(100,180,255,.9);font-size:clamp(10px,1.3vw,13px);}
+.atv .sc-win{color:rgba(196,160,255,.9);}.spr .sc-win{color:var(--brand);}.inn .sc-win{color:var(--orange);}.col .sc-win{color:var(--gold);}
+.sc-desc{font-size:8px;color:rgba(255,255,255,.28);line-height:1.5;margin-top:3px;}
+
+/* ── S7 QUIZ ── */
+#s7{background:#0a0a1a;}
+.quiz-wrap{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;padding:16px 20px 66px;}
+.quiz-header{text-align:center;margin-bottom:14px;flex-shrink:0;}
+.quiz-tag{display:inline-flex;align-items:center;gap:7px;background:rgba(0,200,150,.12);border:1px solid rgba(0,200,150,.3);color:var(--brand);padding:4px 14px;border-radius:100px;font-size:9px;font-weight:700;letter-spacing:3px;text-transform:uppercase;margin-bottom:9px;}
+.quiz-title{font-family:var(--fb);font-size:clamp(22px,4.5vw,48px);letter-spacing:2px;}
+.quiz-sub{font-size:11px;color:var(--muted);}
+.quiz-body{width:100%;max-width:780px;flex:1;display:flex;flex-direction:column;gap:11px;}
+.qprogbar{height:4px;background:rgba(255,255,255,.08);border-radius:100px;overflow:hidden;}
+.qprogfill{height:100%;background:linear-gradient(90deg,var(--brand),var(--blue));border-radius:100px;transition:width .5s ease;}
+.q-card{background:var(--surface);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:18px 22px;}
+.q-num-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;}
+.q-num{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);}
+.q-timer-row{display:flex;align-items:center;gap:8px;}
+.q-timer-track{width:120px;height:4px;background:rgba(255,255,255,.1);border-radius:100px;overflow:hidden;}
+.q-timer-fill{height:100%;background:var(--brand);border-radius:100px;transition:width .1s linear;}
+.q-timer-num{font-family:var(--fb);font-size:18px;color:var(--brand);width:28px;text-align:right;}
+.q-text{font-family:var(--fc);font-size:clamp(16px,2.5vw,26px);font-weight:700;line-height:1.35;margin-bottom:16px;}
+.q-opts{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.qopt{border-radius:10px;padding:12px 14px;font-size:clamp(11px,1.5vw,14px);font-weight:600;display:flex;align-items:center;gap:9px;cursor:pointer;border:2px solid transparent;transition:.2s;background:rgba(255,255,255,.05);}
+.qopt:hover{border-color:var(--brand);background:rgba(0,200,150,.08);}
+.qopt.correct{border-color:#22C55E;background:rgba(34,197,94,.15);color:#4ADE80;}
+.qopt.wrong{border-color:#EF4444;background:rgba(239,68,68,.1);color:#F87171;}
+.qopt.revealed{cursor:default;}
+.qopt-sym{width:26px;height:26px;border-radius:6px;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;font-weight:800;}
+.qopt.correct .qopt-sym{background:rgba(34,197,94,.3);}
+.qopt.wrong .qopt-sym{background:rgba(239,68,68,.2);}
+.q-controls{display:flex;gap:9px;align-items:center;flex-shrink:0;}
+.q-reveal-btn{padding:9px 20px;border-radius:8px;background:var(--brand);color:#000;font-size:12px;font-weight:700;border:none;cursor:pointer;font-family:var(--fn);}
+.q-reveal-btn:disabled{background:rgba(255,255,255,.08);color:var(--muted);cursor:default;}
+.q-next-btn{padding:9px 20px;border-radius:8px;background:rgba(255,255,255,.07);color:rgba(255,255,255,.7);font-size:12px;font-weight:700;border:none;cursor:pointer;font-family:var(--fn);}
+.q-note{font-size:10px;color:var(--muted);margin-left:auto;}
+.quiz-complete{display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;flex:1;}
+.qc-emoji{font-size:60px;}
+.qc-title{font-family:var(--fb);font-size:clamp(30px,5vw,56px);letter-spacing:2px;color:var(--brand);}
+.qc-sub{font-size:15px;color:var(--muted);}
+.qc-restart{padding:11px 24px;border-radius:8px;background:var(--brand);color:#000;font-size:13px;font-weight:700;border:none;cursor:pointer;font-family:var(--fn);}
+
+/* ── S8 PHOTO WALL ── */
+#s8{background:var(--dark);}
+.s8w{width:100%;height:100%;display:flex;flex-direction:column;padding:12px 16px 66px;gap:9px;}
+.wall-hdr{flex-shrink:0;}
+.wall-ey{font-size:8px;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(--pink);margin-bottom:3px;}
+.wall-tt{font-family:var(--fb);font-size:clamp(20px,3.8vw,44px);letter-spacing:2px;}
+.wall-sb{font-size:10px;color:var(--muted);}
+.wall-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;flex:1;}
+.wc{border-radius:10px;overflow:hidden;position:relative;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:7px 4px;animation:wca .45s cubic-bezier(.34,1.56,.64,1) both;}
+@keyframes wca{from{opacity:0;transform:scale(.6);}to{opacity:1;transform:scale(1);}}
+.wc-photo{width:clamp(44px,4.5vw,66px);height:clamp(44px,4.5vw,66px);border-radius:50%;overflow:hidden;display:flex;align-items:center;justify-content:center;font-family:var(--fb);font-size:clamp(16px,2vw,26px);color:#fff;position:relative;margin-bottom:5px;}
+.wc-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.wc-name{font-size:clamp(7.5px,.85vw,10px);font-weight:700;color:rgba(255,255,255,.85);text-align:center;line-height:1.2;}
+.wc-role{font-size:clamp(5.5px,.65vw,8px);color:var(--brand);text-align:center;margin-top:1px;font-weight:600;}
+
+/* ── S9 AWARDS ── */
+#s9{background:radial-gradient(ellipse at center,#0a001e 0%,#000 70%);}
+.aw-glow{position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,.14) 0%,transparent 65%);top:50%;left:50%;transform:translate(-50%,-50%);}
+.aw-inner{position:relative;z-index:2;text-align:center;padding:26px 26px 60px;}
+.trophy{font-size:clamp(44px,8.5vw,84px);display:block;margin-bottom:10px;animation:trp .5s cubic-bezier(.34,1.56,.64,1) both;}
+@keyframes trp{from{opacity:0;transform:scale(0) rotate(-15deg);}to{opacity:1;transform:none;}}
+.aw-cat{font-size:8px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(196,160,255,.65);margin-bottom:8px;}
+.aw-title{font-size:clamp(13px,2vw,20px);font-weight:700;color:rgba(196,160,255,.82);margin-bottom:18px;max-width:460px;margin-left:auto;margin-right:auto;line-height:1.4;}
+.aw-winner{font-family:var(--fb);font-size:clamp(40px,8.5vw,94px);color:#fff;letter-spacing:2px;line-height:.9;animation:wp .7s .2s cubic-bezier(.34,1.56,.64,1) both;}
+@keyframes wp{from{opacity:0;transform:scale(.5);}to{opacity:1;transform:none;}}
+.aw-role{font-size:clamp(11px,1.8vw,16px);color:rgba(255,255,255,.38);margin-top:9px;}
+.aw-stars{font-size:clamp(16px,2.8vw,26px);margin-top:14px;animation:si .4s .6s ease both;}
+@keyframes si{from{opacity:0;transform:scale(0);}to{opacity:1;transform:none;}}
+.aw-ctr{position:absolute;top:14px;right:18px;font-size:10px;color:rgba(255,255,255,.28);z-index:10;}
+
+/* ── S10 CERTIFICATE DOWNLOAD ── */
+#s10{background:radial-gradient(ellipse 100% 90% at 50% 50%,#001a10 0%,#000 70%);}
+.dl-glow{position:absolute;width:700px;height:700px;border-radius:50%;background:radial-gradient(circle,rgba(0,200,150,.11) 0%,transparent 65%);top:50%;left:50%;transform:translate(-50%,-50%);}
+.dl-inner{position:relative;z-index:2;text-align:center;padding:0 28px 60px;max-width:720px;width:100%;}
+.dl-eagle{font-size:clamp(52px,9vw,100px);display:block;margin-bottom:10px;animation:eaglein .7s cubic-bezier(.34,1.56,.64,1) both;}
+@keyframes eaglein{from{opacity:0;transform:scale(0) rotate(-20deg);}to{opacity:1;transform:none;}}
+.dl-eyebrow{font-size:8px;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:var(--brand);margin-bottom:10px;}
+.dl-title{font-family:var(--fb);font-size:clamp(38px,7vw,88px);letter-spacing:3px;line-height:.88;margin-bottom:8px;}
+.dl-title .dlt{color:var(--brand);}
+.dl-sub{font-size:clamp(13px,1.8vw,17px);color:rgba(255,255,255,.5);margin-bottom:28px;line-height:1.7;}
+.dl-steps{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:28px;}
+.dl-step{background:rgba(0,200,150,.08);border:1.5px solid rgba(0,200,150,.28);border-radius:14px;padding:14px 18px;min-width:130px;text-align:center;animation:dsin .5s cubic-bezier(.34,1.56,.64,1) both;}
+@keyframes dsin{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:none;}}
+.dl-step-icon{font-size:26px;margin-bottom:6px;}
+.dl-step-label{font-size:12px;font-weight:700;color:#fff;line-height:1.3;}
+.dl-step-sub{font-size:9.5px;color:rgba(255,255,255,.4);margin-top:3px;}
+.dl-note{background:rgba(0,200,150,.07);border:1.5px solid rgba(0,200,150,.3);border-radius:12px;padding:14px 22px;font-size:clamp(12px,1.6vw,15px);color:rgba(255,255,255,.7);line-height:1.7;}
+.dl-note strong{color:var(--brand);}
+
+/* ── S11 CLOSING ── */
+#s11{background:radial-gradient(ellipse at center,#001a0a 0%,#000 70%);}
+.cl-glow{position:absolute;width:700px;height:700px;border-radius:50%;background:radial-gradient(circle,rgba(0,200,150,.09) 0%,transparent 65%);top:50%;left:50%;transform:translate(-50%,-50%);}
+.cl-i{position:relative;z-index:2;text-align:center;padding:0 28px 60px;}
+.cl-em{font-size:clamp(42px,7vw,78px);display:block;margin-bottom:12px;}
+.cl-tt{font-family:var(--fb);font-size:clamp(38px,7.5vw,94px);letter-spacing:2px;line-height:.86;margin-bottom:10px;}
+.cl-tt .tg{color:var(--brand);display:block;}
+.cl-sb{font-size:clamp(13px,1.7vw,17px);color:rgba(255,255,255,.42);margin-bottom:22px;max-width:460px;margin-left:auto;margin-right:auto;line-height:1.7;}
+/* PEGASUS BOX */
+.pegasus-box{background:linear-gradient(135deg,rgba(0,200,150,.14),rgba(0,200,150,.04));border:2px solid rgba(0,200,150,.45);border-radius:16px;padding:18px 28px;max-width:520px;margin:0 auto 22px;position:relative;overflow:hidden;}
+.pegasus-box::before{content:'🦅';position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:60px;opacity:.08;}
+.peg-tag{font-size:8px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--brand);margin-bottom:8px;}
+.peg-title{font-family:var(--fb);font-size:clamp(22px,3.5vw,38px);letter-spacing:2px;color:#fff;margin-bottom:8px;}
+.peg-title span{color:var(--brand);}
+.peg-text{font-size:clamp(12px,1.6vw,15px);color:rgba(255,255,255,.75);line-height:1.65;margin-bottom:12px;}
+.peg-steps{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.peg-step{background:rgba(0,200,150,.1);border:1px solid rgba(0,200,150,.25);border-radius:8px;padding:6px 12px;font-size:10px;color:rgba(0,200,150,.9);font-weight:600;display:flex;align-items:center;gap:5px;}
+.cl-links{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:16px;}
+.cl-link{padding:8px 16px;border-radius:8px;font-size:11px;font-weight:700;border:1.5px solid;}
+.cl-link.g{border-color:rgba(0,200,150,.45);color:var(--brand);background:rgba(0,200,150,.07);}
+.cl-link.w{border-color:rgba(255,255,255,.12);color:rgba(255,255,255,.55);background:rgba(255,255,255,.03);}
+.cl-batch{display:flex;gap:5px;flex-wrap:wrap;justify-content:center;}
+.clp{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:100px;padding:4px 9px;font-size:9px;font-weight:600;animation:pi .5s cubic-bezier(.34,1.56,.64,1) both;}
+@keyframes pi{from{opacity:0;transform:scale(.6);}to{opacity:1;transform:none;}}
+.cldot{width:5px;height:5px;border-radius:50%;}
+</style>
+</head>
+<body>
+<div id="app">
+<div id="prog"></div>
+<div id="hint"><span class="kb">→</span>Next <span class="kb">←</span>Prev <span class="kb">F</span>Fullscreen <span class="kb">H</span>Hide UI <span class="kb">C</span>Cycle Cert <span class="kb">A</span>Cycle Award <span class="kb">P</span>Photos</div>
+
+<!-- ══ PHOTO MANAGER MODAL ══ -->
+<div id="photo-manager">
+  <div class="pm-header">
+    <div style="flex:1;">
+      <div class="pm-title">📸 PHOTO MANAGER</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:2px;">Click any circle → pick photo → saves instantly. Photos appear on all slides automatically.</div>
+    </div>
+    <div id="pm-count" class="pm-count" style="margin-right:10px;"><strong>0</strong>/27</div>
+    <button style="padding:7px 16px;border-radius:7px;background:rgba(255,92,53,.1);color:var(--orange);font-size:11px;font-weight:700;border:1px solid rgba(255,92,53,.25);cursor:pointer;font-family:var(--fn);margin-right:8px;" onclick="clearAllPhotos()">🗑 Clear All</button>
+    <button style="padding:7px 18px;border-radius:7px;background:var(--brand);color:#000;font-size:12px;font-weight:700;border:none;cursor:pointer;font-family:var(--fn);" onclick="closePhotoManager()">✅ Done</button>
+  </div>
+  <div class="pm-tip" style="padding:8px 20px;">
+    💡 <strong>Before the event:</strong> Upload all photos here. Recommended size: 400×400px square JPG under 500KB. Collect via Google Form (File Upload question). Photos stay saved in your browser.
+  </div>
+  <div class="pm-body" id="pm-body"></div>
+</div>
+
+<!-- ══ S1: LOBBY ══ -->
+<div class="slide centered active" id="s1">
+  <div class="s1g"></div><div class="s1glow"></div>
+  <div class="s1pts" id="s1pts"></div>
+  <div class="s1i">
+    <div class="live-p"><div class="ld2"></div>LIVE · 3rd May 2026</div>
+    <div class="s1-tt">Imarticus<span class="tg">E-Convocation</span></div>
+    <div class="s1-sb">Generative AI Program · Batch 01 · Class of 2026</div>
+    <div class="cdr">
+      <div class="cdb"><div class="cdbn" id="cdm">14</div><div class="cdbl">Mins</div></div>
+      <div class="cdb"><div class="cdbn" id="cds">59</div><div class="cdbl">Secs</div></div>
+    </div>
+    <div class="s1ps">
+      <div class="s1p"><strong>🎓</strong> 27 Graduates</div>
+      <div class="s1p"><strong>🤖</strong> Gen AI Program</div>
+      <div class="s1p"><strong>📍</strong> Virtual · Zoom</div>
+      <div class="s1p"><strong>⏱️</strong> 2.5 Hours</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S2: BATCH INTRO ══ -->
+<div class="slide centered" id="s2">
+  <div class="s2bg"></div><div class="s2lns" id="s2lns"></div>
+  <div class="s2i">
+    <div class="s2badge">🎓 Imarticus Learning · Gen AI · 2026</div>
+    <div class="s2big">Gen AI<span class="gb"> Batch 01</span></div>
+    <div class="s2desc">From "What even is a prompt?" to building real AI systems. 27 people. One incredible journey. This is your story.</div>
+    <div class="s2sts">
+      <div class="ss"><div class="ssn">27</div><div class="ssl">Graduates</div></div>
+      <div class="sdiv"></div>
+      <div class="ss"><div class="ssn">180+</div><div class="ssl">Hours</div></div>
+      <div class="sdiv"></div>
+      <div class="ss"><div class="ssn">12</div><div class="ssl">Projects</div></div>
+      <div class="sdiv"></div>
+      <div class="ss"><div class="ssn">∞</div><div class="ssl">Future</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S3: MEET THE BATCH ══ -->
+<div class="slide" id="s3">
+  <div class="s3w">
+    <div class="s3hdr">
+      <div class="s3tt">Meet Gen AI Batch 01</div>
+      <div class="s3cnt">27 Graduates 🎓</div>
+      <div class="s3-pstatus" id="s3-status" onclick="openPhotoManager()">📸 Add Learner Photos</div>
+    </div>
+    <div class="photo-grid" id="photo-grid"></div>
+  </div>
+</div>
+
+<!-- ══ S4: CERTIFICATE ══ -->
+<div class="slide centered" id="s4">
+  <div class="cgbg"></div><div class="cconf" id="cconf"></div>
+  <div class="cert-ctr"><strong id="cidx">1</strong> / 27</div>
+  <div class="cert-frame">
+    <div class="cftop"><div class="cflog">IL</div><div class="cfo">Imarticus Learning</div></div>
+    <div class="cert-photo-ring" id="cert-photo-ring"><span id="cert-photo-init">AS</span></div>
+    <div class="cfh">Certificate of Completion</div>
+    <div class="cfp2">This is to proudly certify that</div>
+    <div class="cn" id="cname">Adhiraj Saksena</div>
+    <div class="cfc">has successfully completed the</div>
+    <div class="cfbg">🤖 Generative AI Program · Batch 01</div>
+    <div class="cfline"></div>
+    <div class="cff">
+      <div class="cfsign"><div class="cfsb"></div><div class="cfsn">Programme Director</div></div>
+      <div class="cfdate">3rd May 2026<br>With Distinction ✨</div>
+      <div class="cfsign"><div class="cfsb"></div><div class="cfsn">Head of Academics</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S5: PERSONAL MESSAGES ══ -->
+<div class="slide" id="s5">
+  <div class="s5w">
+    <div class="il-msg">
+      <div class="il-logo-row"><div class="il-logo">IL</div><div class="il-org">Imarticus Learning</div></div>
+      <div class="il-msg-text">"To every member of <span class="ilg">Gen AI Batch 01</span> — you didn't just learn a technology. You showed the world what happens when curiosity meets courage. <span class="ilg">The future of AI has your name on it.</span>"</div>
+    </div>
+    <div class="ind-msg-title">💌 A Personal Message for Every Graduate</div>
+    <div class="msg-scroll" id="msg-scroll"></div>
+  </div>
+</div>
+
+<!-- ══ S6: SPECIAL CERTS ══ -->
+<div class="slide" id="s6">
+  <div class="sc-wrap">
+    <div class="sc-ey">🏅 Special Recognition</div>
+    <div class="sc-tt">Certificates of Excellence</div>
+    <div class="sc-row" id="scrow"></div>
+  </div>
+</div>
+
+<!-- ══ S7: QUIZ ══ -->
+<div class="slide" id="s7">
+  <div class="quiz-wrap">
+    <div class="quiz-header">
+      <div class="quiz-tag">🧠 No App Needed · Runs Right Here</div>
+      <div class="quiz-title">Gen AI Batch 01 — Live Quiz!</div>
+      <div class="quiz-sub">Learners answer in Zoom Chat · Click Reveal · Read answers aloud</div>
+    </div>
+    <div class="quiz-body" id="quiz-body">
+      <div class="qprogbar"><div class="qprogfill" id="qpf" style="width:12.5%"></div></div>
+      <div class="q-card">
+        <div class="q-num-row">
+          <div class="q-num" id="qnum">Question 1 of 8</div>
+          <div class="q-timer-row">
+            <div class="q-timer-track"><div class="q-timer-fill" id="qtf" style="width:100%"></div></div>
+            <div class="q-timer-num" id="qtimer">30</div>
+          </div>
+        </div>
+        <div class="q-text" id="qtext">Which of these tools did Gen AI Batch 01 use the MOST?</div>
+        <div class="q-opts" id="qopts">
+          <div class="qopt" onclick="selectOpt(0)"><div class="qopt-sym">A</div><span id="qo0">ChatGPT API</span></div>
+          <div class="qopt" onclick="selectOpt(1)"><div class="qopt-sym">B</div><span id="qo1">Hugging Face</span></div>
+          <div class="qopt" onclick="selectOpt(2)"><div class="qopt-sym">C</div><span id="qo2">Google Gemini</span></div>
+          <div class="qopt" onclick="selectOpt(3)"><div class="qopt-sym">D</div><span id="qo3">LangChain</span></div>
+        </div>
+      </div>
+      <div class="q-controls">
+        <button class="q-reveal-btn" id="qrevbtn" onclick="revealAnswer()">👁️ Reveal Answer</button>
+        <button class="q-next-btn" id="qnxtbtn" onclick="nextQ()" disabled>Next →</button>
+        <div class="q-note" id="qnote">💬 Learners type in Zoom Chat — then Reveal!</div>
+      </div>
+      <div class="quiz-complete" id="qcomplete">
+        <div class="qc-emoji">🎉</div>
+        <div class="qc-title">Quiz Complete!</div>
+        <div class="qc-sub">Announce the winner from Zoom Chat!<br>Move to Awards next.</div>
+        <button class="qc-restart" onclick="restartQuiz()">🔄 Play Again</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S8: PHOTO WALL ══ -->
+<div class="slide" id="s8">
+  <div class="s8w">
+    <div class="wall-hdr">
+      <div class="wall-ey">⭐ The Big Reveal Moment</div>
+      <div class="wall-tt">🎉 Gen AI Batch 01 — THE LEGENDS!</div>
+      <div class="wall-sb">27 faces. 1 legendary batch. Screenshot this right now! 📸</div>
+    </div>
+    <div class="wall-grid" id="wall-grid"></div>
+  </div>
+</div>
+
+<!-- ══ S9: AWARDS ══ -->
+<div class="slide centered" id="s9">
+  <div class="aw-glow"></div>
+  <div class="aw-ctr" id="awctr">Award 1/7</div>
+  <div class="aw-inner">
+    <span class="trophy">🏆</span>
+    <div class="aw-cat">🗳️ Peer-Voted · Gen AI Batch 01</div>
+    <div class="aw-title" id="awtit">Most Likely to Build India's Next AI Startup</div>
+    <div class="aw-winner" id="awwin">Sonu Gilda</div>
+    <div class="aw-role" id="awrole">Gen AI · Batch 01</div>
+    <div class="aw-stars">⭐⭐⭐⭐⭐</div>
+  </div>
+</div>
+
+<!-- ══ S10: CERTIFICATE DOWNLOAD ══ -->
+<div class="slide centered" id="s10">
+  <div class="dl-glow"></div>
+  <div class="dl-inner">
+    <span class="dl-eagle">🦅</span>
+    <div class="dl-eyebrow">Imarticus Learning · Official Certificate</div>
+    <div class="dl-title">Download Your<br><span class="dlt">Certificate Now!</span></div>
+    <div class="dl-sub">Your Gen AI Program certificate is ready and waiting for you.<br>Download it from the <strong style="color:#fff;">Pegasus Platform</strong> right now! 🎓</div>
+    <div class="dl-steps">
+      <div class="dl-step" style="animation-delay:.05s">
+        <div class="dl-step-icon">📱</div>
+        <div class="dl-step-label">Open Pegasus App</div>
+        <div class="dl-step-sub">Imarticus Learning</div>
+      </div>
+      <div class="dl-step" style="animation-delay:.15s">
+        <div class="dl-step-icon">🎓</div>
+        <div class="dl-step-label">Go to My Courses</div>
+        <div class="dl-step-sub">Find Gen AI Program</div>
+      </div>
+      <div class="dl-step" style="animation-delay:.25s">
+        <div class="dl-step-icon">⬇️</div>
+        <div class="dl-step-label">Download Certificate</div>
+        <div class="dl-step-sub">Save to your device</div>
+      </div>
+      <div class="dl-step" style="animation-delay:.35s">
+        <div class="dl-step-icon">🔗</div>
+        <div class="dl-step-label">Share on LinkedIn</div>
+        <div class="dl-step-sub">Let the world know!</div>
+      </div>
+    </div>
+    <div class="dl-note">
+      💡 <strong>Don't have the Pegasus app yet?</strong> Search <strong>"Pegasus Imarticus"</strong> on the App Store or Google Play and log in with your registered email. Your certificate will be there! 🌟
+    </div>
+  </div>
+</div>
+
+<!-- ══ S11: CLOSING ══ -->
+<div class="slide centered" id="s11">
+  <div class="cl-glow"></div>
+  <div class="cl-i">
+    <span class="cl-em">🎓</span>
+    <div class="cl-tt">Congratulations<span class="tg">Gen AI Batch 01!</span></div>
+    <div class="cl-sb">27 incredible humans. 1 legendary night.<br>Imarticus is proud of every one of you. 🚀</div>
+    <div class="pegasus-box">
+      <div class="peg-tag">📱 Important · Your Certificate</div>
+      <div class="peg-title">Download on <span>Pegasus</span> 🦅</div>
+      <div class="peg-text">Your official Gen AI certificate is waiting for you on the <strong>Imarticus Learning Pegasus platform.</strong> Download it, share it on LinkedIn, and let the world know you're a Gen AI graduate! 🌟</div>
+      <div class="peg-steps">
+        <div class="peg-step">📱 Open Pegasus App</div>
+        <div class="peg-step">🎓 Go to My Courses</div>
+        <div class="peg-step">⬇️ Download Certificate</div>
+        <div class="peg-step">🔗 Share on LinkedIn</div>
+      </div>
+    </div>
+    <div class="cl-links">
+      <div class="cl-link g">💼 LinkedIn Alumni → bit.ly/genai-batch01</div>
+      <div class="cl-link w">📸 Memory Wall → padlet.com/imarticus/genai01</div>
+    </div>
+    <div class="cl-batch" id="clbatch"></div>
+  </div>
+</div>
+
+<!-- ══ CUE BAR ══ -->
+<div id="cue">
+  <div class="ctag">HOST CUE</div>
+  <div class="cmsg" id="cmsg">Loading…</div>
+  <div class="cmu" id="cmu"><div class="md"></div>🎵 —</div>
+  <div class="cnn" id="cnn">01/11</div>
+  <div style="display:flex;gap:6px;">
+    <button class="cbt-photo" onclick="openPhotoManager()">📸 Photos</button>
+    <button class="cbt p" onclick="prev()">← Back</button>
+    <button class="cbt n" onclick="nxt()" id="nxtbtn">Next →</button>
+  </div>
+</div>
+
+<script>
+const LEARNERS=['Adhiraj Saksena','Aditi Shukla','Apoorva Saxena','Arpita Jaiswal','Atul Rai','Balaji','Deepanshu Pant','Girish Goyal','Heena Phulwani','Jinal Shah','Jitendra Singh','Piyush Santosh Chowdhary','Prashant Kumar Shaw','Prathyusha Suvarna','Rakhya Ranjan Sahoo','Ranu Sharma','Ritu Dhanwani','Shailesh Maheshwari','Shubham Jaju','Shweta Patnaik','Siddharth','Smruti Sweta Samantray','Sonam Ghosh','Sonu Gilda','Soundarya','Vaishaka Puthran','Yesh Agarwal'];
+const COLORS=['#E74C3C','#3498DB','#2ECC71','#F39C12','#9B59B6','#1ABC9C','#E67E22','#E91E63','#00BCD4','#8BC34A','#FF5722','#673AB7','#009688','#FF9800','#607D8B','#F44336','#2196F3','#4CAF50','#FF8F00','#9C27B0','#03A9F4','#8D6E63','#26C6DA','#CDDC39','#EF5350','#42A5F5','#66BB6A'];
+
+/* ── PHOTO STORAGE ── */
+let PHOTOS={};
+function loadPhotos(){try{const s=localStorage.getItem('genai_photos_v2');if(s)PHOTOS=JSON.parse(s);}catch(e){PHOTOS={};}}
+function savePhotos(){try{localStorage.setItem('genai_photos_v2',JSON.stringify(PHOTOS));}catch(e){alert('Storage full — compress photos to under 200KB each.');}}
+function getPhoto(n){return PHOTOS[n]||null;}
+function setPhoto(n,d){PHOTOS[n]=d;savePhotos();}
+function clearAllPhotos(){if(confirm('Remove all '+Object.keys(PHOTOS).length+' photos?')){PHOTOS={};savePhotos();buildPhotoManager();refreshAllPhotos();}}
+function photoCount(){return Object.keys(PHOTOS).length;}
+
+function refreshAllPhotos(){
+  buildPhotoGrid();buildMessages();buildWallGrid();buildDreamJobsWall();buildClosing();refreshCertPhoto();updatePhotoStatus();
+}
+function updatePhotoStatus(){
+  const c=photoCount(),el=document.getElementById('s3-status'),pm=document.getElementById('pm-count');
+  if(el){if(!c){el.textContent='📸 Add Learner Photos';el.className='s3-pstatus';}
+    else if(c<27){el.textContent=`📸 ${c}/27 Photos Added`;el.className='s3-pstatus';}
+    else{el.textContent='✅ All 27 Photos Ready!';el.className='s3-pstatus done';}}
+  if(pm)pm.innerHTML=`<strong>${c}</strong>/27`;
+}
+
+/* ── PHOTO MANAGER ── */
+function buildPhotoManager(){
+  const b=document.getElementById('pm-body');b.innerHTML='';
+  LEARNERS.forEach((name,i)=>{
+    const init=name.split(' ').slice(0,2).map(w=>w[0]).join('');
+    const photo=getPhoto(name);
+    const fid='pmf_'+i;
+    const card=document.createElement('div');card.className='pm-card';
+    card.innerHTML=`<div class="pm-avatar" style="background:${COLORS[i]};" onclick="document.getElementById('${fid}').click()"><span style="position:relative;z-index:1;">${init}</span>${photo?`<img src="${photo}" alt="">`:''}  <div class="pm-overlay">📷</div></div><input type="file" id="${fid}" class="pm-file-input" accept="image/*" onchange="handlePhotoUpload('${name}',this,${i})"><div class="pm-name">${name}</div><div class="pm-status ${photo?'':'none'}" id="pms_${i}">${photo?'✅ Added':'—'}</div>`;
+    b.appendChild(card);
+  });
+  updatePhotoStatus();
+}
+function handlePhotoUpload(name,input,idx){
+  const file=input.files[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    setPhoto(name,e.target.result);
+    const card=input.closest('.pm-card');
+    const av=card.querySelector('.pm-avatar');
+    let img=av.querySelector('img');
+    if(!img){img=document.createElement('img');av.appendChild(img);}
+    img.src=e.target.result;
+    const st=document.getElementById('pms_'+idx);
+    if(st){st.textContent='✅ Added';st.className='pm-status';}
+    updatePhotoStatus();refreshAllPhotos();
+  };r.readAsDataURL(file);
+}
+function openPhotoManager(){buildPhotoManager();document.getElementById('photo-manager').classList.add('open');}
+function closePhotoManager(){document.getElementById('photo-manager').classList.remove('open');}
+
+/* ── BUILD SLIDES ── */
+function buildPhotoGrid(){
+  const g=document.getElementById('photo-grid');if(!g)return;g.innerHTML='';
+  LEARNERS.forEach((name,i)=>{
+    const c=document.createElement('div');c.className='photo-card';c.style.animationDelay=(i*.035)+'s';
+    const init=name.split(' ').slice(0,2).map(w=>w[0]).join('');
+    const photo=getPhoto(name);
+    c.innerHTML=`<div class="pc-photo" style="background:${COLORS[i]};--c:${COLORS[i]};"><span style="position:relative;z-index:1;">${init}</span><div class="pc-ring"></div>${photo?`<img src="${photo}" alt="">`:''}  </div><div class="pc-name">${name.split(' ')[0]}</div>`;
+    g.appendChild(c);
+  });
+}
+
+function buildWallGrid(){
+  const g=document.getElementById('wall-grid');if(!g)return;g.innerHTML='';
+  LEARNERS.forEach((name,i)=>{
+    const c=document.createElement('div');c.className='wc';c.style.cssText=`border:1.5px solid ${COLORS[i]}33;animation-delay:${i*.035}s;`;
+    const init=name.split(' ').slice(0,2).map(w=>w[0]).join('');
+    const photo=getPhoto(name);
+    c.innerHTML=`<div class="wc-photo" style="background:${COLORS[i]};"><span style="position:relative;z-index:1;">${init}</span>${photo?`<img src="${photo}" alt="">`:''}  </div><div class="wc-name">${name.split(' ')[0]}</div><div class="wc-role" style="color:${COLORS[i]};">AI Graduate ✨</div>`;
+    g.appendChild(c);
+  });
+}
+
+const MESSAGES={'Adhiraj Saksena':"Your curiosity pushed the whole batch to think deeper. Every question you asked opened a new door for everyone around you.",'Aditi Shukla':"From day one, your energy was infectious. You turned every difficult concept into something the batch could laugh through and learn from.",'Apoorva Saxena':"Your projects weren't just submissions — they were real, working, thoughtful AI solutions. The industry is ready for you.",'Arpita Jaiswal':"You brought warmth to every session. The batch felt like a family partly because of the way you showed up for everyone.",'Atul Rai':"Watching you go from uncertain to confident has been one of the best stories of this batch. That transformation belongs entirely to you.",'Balaji':"You had a unique way of connecting AI concepts to real business problems. That skill is rare — and incredibly valuable.",'Deepanshu Pant':"Late nights, tough assignments, complex debugging — you handled all of it. Your resilience is what made you shine.",'Girish Goyal':"Your structured thinking and methodical approach to every problem made you stand out. You think like an engineer AND a strategist.",'Heena Phulwani':"Your questions were always the best ones — the kind that made mentors pause and think. Never lose that intellectual courage.",'Jinal Shah':"The detail you put into your work is extraordinary. Every project you submitted was a masterclass in thoroughness.",'Jitendra Singh':"You came in with a goal and you never let go of it. That kind of focus doesn't just build AI projects — it builds careers.",'Piyush Santosh Chowdhary':"100% attendance isn't just a number — it's a statement of character. You showed up, every single time.",'Prashant Kumar Shaw':"Your consistency was remarkable. Every single session, you were present, engaged, and giving 100%. The batch noticed.",'Prathyusha Suvarna':"You have a natural gift for explaining complex things simply. That skill will make you a leader, not just a practitioner.",'Rakhya Ranjan Sahoo':"Your presence elevated every session. Your ideas were bold, your execution was sharp, and your spirit lifted the entire batch.",'Ranu Sharma':"The progress you made in this program is genuinely inspiring. You proved that with the right mindset, everything is learnable.",'Ritu Dhanwani':"Your creativity in applying Gen AI to real problems set you apart. You didn't just learn the tools — you invented new uses for them.",'Shailesh Maheshwari':"Your experience combined with Gen AI skills is a powerful combination. You're going to build things that actually matter.",'Shubham Jaju':"Your passion for building was evident every week. You didn't just study AI — you fell in love with what it could do.",'Shweta Patnaik':"Your collaborative spirit made everyone around you better. You are the kind of professional every team wants.",'Siddharth':"Bold ideas, clear thinking, and the courage to present them — that's what defined your journey in this batch.",'Smruti Sweta Samantray':"Your final project was the most creative submission of the entire batch. You showed what's truly possible.",'Sonam Ghosh':"You grew beautifully throughout this program. The confidence you carry now was hard-earned — and well deserved.",'Sonu Gilda':"Your entrepreneurial mindset makes everything you touch feel like a potential product. The startup world is waiting for you.",'Soundarya':"You were always the first to support a batchmate, always willing to share what you'd learned. That generosity is rare.",'Vaishaka Puthran':"Your ability to absorb and apply knowledge quickly is extraordinary. Whatever problem you take on next, you will solve it.",'Yesh Agarwal':"You brought energy to every single class. Even on difficult days, your enthusiasm reminded everyone why we were here."};
+
+function buildMessages(){
+  const g=document.getElementById('msg-scroll');if(!g)return;g.innerHTML='';
+  LEARNERS.forEach((name,i)=>{
+    const c=document.createElement('div');c.className='ind-card';c.style.animationDelay=(i*.04)+'s';
+    const init=name.split(' ').slice(0,2).map(w=>w[0]).join('');
+    const photo=getPhoto(name);
+    c.innerHTML=`<div class="ind-card-top"><div class="ind-av" style="background:${COLORS[i]};">${photo?`<img src="${photo}" alt="">`:''}<span style="position:relative;z-index:1;">${photo?'':init}</span></div><div class="ind-name">${name.split(' ')[0]}</div></div><div class="ind-msg-body">"${MESSAGES[name]||'Your dedication throughout this program has been truly inspiring. Keep shining!'}"</div>`;
+    g.appendChild(c);
+  });
+}
+
+const SPECIAL_CERTS=[
+  {type:'att',icon:'📅',label:'Perfect Attendance',award:'Highest Attendance Award',winners:['Piyush Santosh Chowdhary','Prashant Kumar Shaw','Rakhya Ranjan Sahoo'],desc:'Attended every single session without missing one.'},
+  {type:'spr',icon:'🔥',label:'Heart of the Batch',award:'Heart of the Batch Award',winners:['Rakhya Ranjan Sahoo'],desc:'Lifted everyone around them. The soul of Gen AI Batch 01.'},
+  {type:'inn',icon:'💡',label:'Most Innovative',award:'Innovation Excellence Award',winners:['Rakhya Ranjan Sahoo'],desc:'Most creative and innovative approach to AI every single week.'},
+  {type:'col',icon:'🤝',label:'Best Team Player',award:'Collaboration Champion',winners:['Soundarya'],desc:'First to help a batchmate. Never left anyone behind.'},
+  {type:'atv',icon:'🎨',label:'Most Creative Project',award:'Best Final Project Award',winners:['Smruti Sweta Samantray'],desc:'Most creative and original AI project of the entire batch.'},
+];
+function buildSpecialCerts(){
+  const row=document.getElementById('scrow');if(!row)return;
+  SPECIAL_CERTS.forEach((c,i)=>{
+    const el=document.createElement('div');el.className=`sc-card ${c.type}`;el.style.animationDelay=(i*.1)+'s';
+    const wHTML=c.winners.length===1?`<div class="sc-win">${c.winners[0]}</div>`:c.winners.map(w=>`<div class="sc-win" style="font-size:clamp(10px,1.3vw,15px);">${w.split(' ').slice(0,2).join(' ')}</div>`).join('');
+    el.innerHTML=`<div class="sc-rib"></div><span class="sc-ico">${c.icon}</span><div class="sc-lb">${c.label}</div><div class="sc-aw">${c.award}</div>${wHTML}<div class="sc-desc">${c.desc}</div>`;
+    row.appendChild(el);
+  });
+}
+
+const DREAM_JOBS={'Adhiraj Saksena':{job:'AI Product Manager',emoji:'📱'},'Aditi Shukla':{job:'Gen AI Consultant',emoji:'🤝'},'Apoorva Saxena':{job:'AI Solutions Architect',emoji:'🏗️'},'Arpita Jaiswal':{job:'Data Scientist',emoji:'📊'},'Atul Rai':{job:'ML Engineer',emoji:'⚙️'},'Balaji':{job:'AI Product Lead',emoji:'🚀'},'Deepanshu Pant':{job:'AI Researcher',emoji:'🔬'},'Girish Goyal':{job:'AI Strategy Consultant',emoji:'♟️'},'Heena Phulwani':{job:'NLP Engineer',emoji:'💬'},'Jinal Shah':{job:'AI Business Analyst',emoji:'📈'},'Jitendra Singh':{job:'Gen AI Developer',emoji:'💻'},'Piyush Santosh Chowdhary':{job:'AI Product Manager',emoji:'🎯'},'Prashant Kumar Shaw':{job:'Data Engineer',emoji:'🛢️'},'Prathyusha Suvarna':{job:'AI Educator & Trainer',emoji:'🎓'},'Rakhya Ranjan Sahoo':{job:'AI Startup Founder',emoji:'🦁'},'Ranu Sharma':{job:'AI Content Strategist',emoji:'✍️'},'Ritu Dhanwani':{job:'Gen AI Innovator',emoji:'💡'},'Shailesh Maheshwari':{job:'AI Business Leader',emoji:'🏆'},'Shubham Jaju':{job:'AI Engineer & Builder',emoji:'🔧'},'Shweta Patnaik':{job:'AI Project Manager',emoji:'📋'},'Siddharth':{job:'AI Product Designer',emoji:'🎨'},'Smruti Sweta Samantray':{job:'Creative AI Developer',emoji:'🌟'},'Sonam Ghosh':{job:'AI Transformation Lead',emoji:'🌐'},'Sonu Gilda':{job:'AI Startup Founder',emoji:'⚡'},'Soundarya':{job:'AI UX Researcher',emoji:'🔍'},'Vaishaka Puthran':{job:'ML Solutions Engineer',emoji:'🤖'},'Yesh Agarwal':{job:'Gen AI Evangelist',emoji:'📣'}};
+
+function buildDreamJobsWall(){
+  const g=document.getElementById('djgrid');if(!g)return;g.innerHTML='';
+  LEARNERS.forEach((name,i)=>{
+    const dj=DREAM_JOBS[name]||{job:'AI Professional',emoji:'🤖'};
+    const init=name.split(' ').slice(0,2).map(w=>w[0]).join('');
+    const photo=getPhoto(name);
+    const card=document.createElement('div');card.className='djcard';
+    card.style.cssText=`border-color:${COLORS[i]}44;background:${COLORS[i]}0f;animation-delay:${i*.04}s;`;
+    card.innerHTML=`<div style="position:absolute;top:0;left:0;right:0;height:2px;background:${COLORS[i]};opacity:.65;border-radius:12px 12px 0 0;"></div><div class="djcard-photo" style="background:${COLORS[i]};border-color:${COLORS[i]}66;"><span style="position:relative;z-index:1;">${init}</span>${photo?`<img src="${photo}" alt="">`:''}</div><div class="djcard-name">${name.split(' ')[0]}</div><div class="djcard-emoji">${dj.emoji}</div><div class="djcard-job" style="border:1px solid ${COLORS[i]}33;">${dj.job}</div>`;
+    g.appendChild(card);
+  });
+}
+
+function buildClosing(){
+  const w=document.getElementById('clbatch');if(!w)return;w.innerHTML='';
+  LEARNERS.forEach((name,i)=>{
+    const p=document.createElement('div');p.className='clp';p.style.animationDelay=(i*.04)+'s';
+    p.innerHTML=`<div class="cldot" style="background:${COLORS[i]};"></div>${name.split(' ')[0]}`;
+    w.appendChild(p);
+  });
+}
+
+/* ── CERT CYCLE ── */
+let certIdx=0;
+function refreshCertPhoto(){
+  const name=LEARNERS[certIdx];
+  const ring=document.getElementById('cert-photo-ring');
+  const init=document.getElementById('cert-photo-init');
+  if(!ring)return;
+  init.textContent=name.split(' ').slice(0,2).map(w=>w[0]).join('');
+  const photo=getPhoto(name);
+  let img=ring.querySelector('img');
+  if(photo){if(!img){img=document.createElement('img');ring.appendChild(img);}img.src=photo;init.style.display='none';}
+  else{if(img)img.remove();init.style.display='';}
+}
+function cycleCert(){
+  certIdx=(certIdx+1)%LEARNERS.length;
+  document.getElementById('cname').textContent=LEARNERS[certIdx];
+  document.getElementById('cidx').textContent=certIdx+1;
+  refreshCertPhoto();spawnConfetti();
+}
+
+/* ── AWARDS ── */
+const AWARDS=[
+  {cat:"Most Likely to Build India's Next AI Startup",winner:'Sonu Gilda',role:'Gen AI · Batch 01'},
+  {cat:'Heart of the Batch — Always There for Everyone',winner:'Rakhya Ranjan Sahoo',role:'Gen AI · Batch 01'},
+  {cat:'Most Innovative Thinker — Batch 01',winner:'Rakhya Ranjan Sahoo',role:'Gen AI · Batch 01'},
+  {cat:'Best Project Presentation — Batch 01',winner:'Smruti Sweta Samantray',role:'Gen AI · Batch 01'},
+  {cat:'"3 AM Still Coding" Champion',winner:'Shubham Jaju',role:'Gen AI · Batch 01'},
+  {cat:'Most Improved — Gen AI Batch 01',winner:'Ranu Sharma',role:'Gen AI · Batch 01'},
+  {cat:'"LinkedIn Influencer of the Year"',winner:'Aditi Shukla',role:'Gen AI · Batch 01'},
+];
+let awIdx=0;
+function cycleAward(){
+  awIdx=awIdx%AWARDS.length;
+  const a=AWARDS[awIdx];
+  document.getElementById('awtit').textContent=a.cat;
+  document.getElementById('awwin').textContent=a.winner;
+  document.getElementById('awrole').textContent=a.role;
+  document.getElementById('awctr').textContent=`Award ${awIdx+1}/${AWARDS.length}`;
+  awIdx++;
+}
+
+/* ── QUIZ ── */
+const QUIZ=[
+  {q:"Which tool did Gen AI Batch 01 use MOST in their projects?",opts:["ChatGPT API","Hugging Face","Google Gemini","LangChain"],ans:0,exp:"ChatGPT API was the most used tool across projects in Batch 01!"},
+  {q:"What does 'RAG' stand for in Gen AI? 🧠",opts:["Random Answer Generator","Retrieval Augmented Generation","Rapid AI Growth","Recurrent Algorithm Graph"],ans:1,exp:"RAG = Retrieval Augmented Generation — grounding AI in real knowledge!"},
+  {q:"Who had 100% attendance across ALL sessions? 📅",opts:["Adhiraj Saksena","Piyush Chowdhary","Sonu Gilda","Yesh Agarwal"],ans:1,exp:"Piyush Santosh Chowdhary, Prashant Kumar Shaw & Rakhya Ranjan Sahoo — all 100%! 🎉"},
+  {q:"What is a 'Prompt' in Gen AI? 🤖",opts:["A reminder to submit","The input given to an AI model","A neural network layer","A Python library"],ans:1,exp:"A prompt is the instruction or input you give to an AI to get a response!"},
+  {q:"Who won both 'Heart of the Batch' AND 'Most Innovative'? 🏆",opts:["Smruti Sweta","Soundarya","Rakhya Ranjan Sahoo","Sonu Gilda"],ans:2,exp:"Rakhya Ranjan Sahoo — heart, soul, AND innovator of Gen AI Batch 01! 🔥"},
+  {q:"What makes Gen AI different from traditional AI? 💡",opts:["It's faster","It creates new content","Only works on images","Needs no training data"],ans:1,exp:"Gen AI creates NEW content — text, images, code, audio — that's the magic!"},
+  {q:"If Batch 01 was a movie, what would it be called? 🎬",opts:["Mission Impossible","The Avengers of AI","From Zero to Genius","The Matrix Reloaded"],ans:1,exp:"THE AVENGERS OF AI — 27 heroes, one incredible mission! 🦸"},
+  {q:"One word that describes Gen AI Batch 01? ❤️",opts:["Smart","Resilient","Creative","LEGENDARY 🌟"],ans:3,exp:"LEGENDARY! Every single one of you. Now go change the world! 🚀"},
+];
+let qIdx=0,qRevealed=false,qTimerVal=30,qTimerInt=null;
+function startQuiz(){qIdx=0;qRevealed=false;document.getElementById('quiz-body').style.display='flex';document.getElementById('qcomplete').style.display='none';loadQ(0);}
+function restartQuiz(){startQuiz();}
+function loadQ(idx){
+  if(idx>=QUIZ.length){endQuiz();return;}
+  const q=QUIZ[idx];qRevealed=false;
+  document.getElementById('qnum').textContent=`Question ${idx+1} of ${QUIZ.length}`;
+  document.getElementById('qtext').textContent=q.q;
+  document.getElementById('qpf').style.width=((idx+1)/QUIZ.length*100)+'%';
+  ['A','B','C','D'].forEach((_,i)=>{
+    const el=document.getElementById('qo'+i);el.textContent=q.opts[i];
+    el.parentElement.className='qopt';el.parentElement.onclick=()=>selectOpt(i);
+  });
+  document.getElementById('qrevbtn').disabled=false;
+  document.getElementById('qnxtbtn').disabled=true;
+  document.getElementById('qnote').textContent='💬 Learners type in Zoom Chat — then Reveal!';
+  startQTimer();
+}
+function startQTimer(){
+  qTimerVal=30;clearInterval(qTimerInt);
+  document.getElementById('qtf').style.width='100%';
+  document.getElementById('qtimer').textContent=30;
+  qTimerInt=setInterval(()=>{
+    qTimerVal--;
+    const tf=document.getElementById('qtf'),tn=document.getElementById('qtimer');
+    if(tf)tf.style.width=(qTimerVal/30*100)+'%';
+    if(tn){tn.textContent=qTimerVal;tn.style.color=qTimerVal<=5?'#EF4444':'var(--brand)';}
+    if(qTimerVal<=0){clearInterval(qTimerInt);if(!qRevealed)revealAnswer();}
+  },1000);
+}
+function selectOpt(i){if(qRevealed)return;}
+function revealAnswer(){
+  if(qRevealed)return;qRevealed=true;clearInterval(qTimerInt);
+  const q=QUIZ[qIdx];
+  ['A','B','C','D'].forEach((_,i)=>{
+    const el=document.getElementById('qo'+i).parentElement;
+    el.onclick=null;el.classList.add(i===q.ans?'correct':'wrong','revealed');
+  });
+  document.getElementById('qrevbtn').disabled=true;
+  document.getElementById('qnxtbtn').disabled=false;
+  document.getElementById('qnote').textContent='✅ '+q.exp;
+}
+function nextQ(){qIdx++;loadQ(qIdx);}
+function endQuiz(){
+  document.getElementById('quiz-body').style.display='none';
+  document.getElementById('qcomplete').style.display='flex';
+}
+
+/* ── SLIDES CONFIG ── */
+const SLIDES=[
+  {music:"Afrojack — Can't Stop Me Now",          cue:"Lobby is live! Say: 'Welcome to Gen AI Batch 01 E-Convocation! Drop your city in chat 👇' — Music is playing via Screenshare + Sound."},
+  {music:"Two Steps from Hell — Protectors",       cue:"Play your sizzle reel video now (Screenshare + Optimize for video clip + Share sound). Return here after. Say: 'This is your journey.'"},
+  {music:"Marshmello — Alone (upbeat)",            cue:"Say: 'Let me introduce every legend of Gen AI Batch 01!' Photos auto-appear if you loaded them via the 📸 button."},
+  {music:"Vitamin C — Graduation (piano)",         cue:"Press C to show each learner's certificate. Say their name aloud. Unmute each graduate for 15 seconds to celebrate! Their photo auto-appears on cert."},
+  {music:"Ludovico Einaudi — Experience",          cue:"Show the Imarticus message first. Then scroll through the personal messages. Say: 'We have a message for each one of you.'"},
+  {music:"Pomp & Circumstance (orchestral)",       cue:"Say: 'Now for very special recognitions!' Spotlight each winner on Zoom. Unmute them to react!"},
+  {music:"Lo-fi background (30% volume)",          cue:"Quiz runs right here — no Kahoot needed! Read each Q aloud. Learners answer in Zoom Chat. Click Reveal after 20-30 secs!"},
+  {music:"Avicii — Levels (FULL DROP 🔥)",         cue:"BIG MOMENT! All 27 faces on screen — Screenshare this NOW! Say: 'GEN AI BATCH 01 — LOOK AT YOUR CLASS OF 2026!' Take a screenshot!"},
+  {music:"Drumroll → Hans Zimmer fanfare",         cue:"Press A to cycle each award. Play a drumroll sound while building suspense. Spotlight winner in Zoom. Unmute them 10 seconds!"},
+  {music:"Daft Punk — Harder Better Faster 🔥",   cue:"DREAM JOB WALL is live! Screenshare this. Say: 'These are the roles Gen AI Batch 01 is going after. Read each one!' Go row by row!"},
+  {music:"We Are The Champions — Queen 👑",        cue:"SAY: 'Download your certificate from the Imarticus Pegasus app!' → Drop LinkedIn link in chat → Co-host: Unmute All → 3-2-1 → Everyone cheer!!"},
+];
+
+const slideIds=['s1','s2','s3','s4','s5','s6','s7','s8','s9','s10','s11'];
+let cur=0;
+
+function goTo(n){
+  document.querySelector('.slide.active')?.classList.remove('active');
+  cur=Math.max(0,Math.min(n,slideIds.length-1));
+  document.getElementById(slideIds[cur]).classList.add('active');
+  updateCue();updateProg();onEnter(cur);
+}
+function nxt(){cur===slideIds.length-1?goTo(0):goTo(cur+1);}
+function prev(){cur>0&&goTo(cur-1);}
+function updateCue(){
+  const d=SLIDES[cur];
+  document.getElementById('cmsg').textContent=d.cue;
+  document.getElementById('cmu').innerHTML=`<div class="md"></div>🎵 ${d.music}`;
+  document.getElementById('cnn').textContent=String(cur+1).padStart(2,'0')+'/'+String(slideIds.length).padStart(2,'0');
+  document.getElementById('nxtbtn').textContent=cur===slideIds.length-1?'🔁 Restart':'Next →';
+}
+function updateProg(){document.getElementById('prog').style.width=((cur/(slideIds.length-1))*100)+'%';}
+function onEnter(n){
+  if(n===3)spawnConfetti();
+  if(n===6)startQuiz();
+  if(n===7||n===10){spawnConfetti();setTimeout(spawnConfetti,700);}
+}
+
+/* ── CONFETTI ── */
+function spawnConfetti(){
+  const w=document.getElementById('cconf');if(!w)return;
+  const cols=['#00C896','#FFD60A','#FF5C35','#FF3CAC','#8B5CF6','#fff','#3498DB'];
+  for(let i=0;i<80;i++){
+    const p=document.createElement('div');p.className='cfp';
+    const sz=4+Math.random()*10;
+    p.style.cssText=`--w:${sz}px;--h:${sz}px;--c:${cols[i%cols.length]};--r:${Math.random()>.5?'50%':'2px'};--d:${2+Math.random()*2.5}s;--dl:${Math.random()*.6}s;--dx:${(Math.random()-.5)*260}px;left:${Math.random()*100}%;`;
+    w.appendChild(p);setTimeout(()=>p.remove(),4000);
+  }
+}
+
+/* ── PARTICLES ── */
+function buildParticles(){
+  const w=document.getElementById('s1pts');
+  const cols=['#00C896','#3B82F6','#FFD60A','#FF3CAC','#8B5CF6'];
+  for(let i=0;i<22;i++){
+    const p=document.createElement('div');p.className='pt';
+    const sz=2+Math.random()*4;
+    p.style.cssText=`width:${sz}px;height:${sz}px;background:${cols[i%cols.length]};left:${Math.random()*100}%;--d:${5+Math.random()*8}s;--dl:${Math.random()*5}s;opacity:.35;`;
+    w.appendChild(p);
+  }
+}
+
+/* ── S2 LINES ── */
+function buildS2Lines(){
+  const w=document.getElementById('s2lns');if(!w)return;
+  for(let i=0;i<7;i++){
+    const l=document.createElement('div');l.className='s2ln';
+    l.style.cssText=`top:${8+i*13}%;--d:${4+Math.random()*5}s;--dl:${Math.random()*4}s;width:${55+Math.random()*45}%;`;
+    w.appendChild(l);
+  }
+}
+
+/* ── LOBBY COUNTDOWN ── */
+let lm=14,ls=59;
+setInterval(()=>{
+  ls--;if(ls<0){ls=59;lm=Math.max(0,lm-1);}
+  const em=document.getElementById('cdm'),es=document.getElementById('cds');
+  if(em)em.textContent=String(lm).padStart(2,'0');
+  if(es)es.textContent=String(ls).padStart(2,'0');
+},1000);
+
+/* ── KEYBOARD ── */
+function toggleFS(){if(!document.fullscreenElement)document.documentElement.requestFullscreen().catch(()=>{});else document.exitFullscreen();}
+document.addEventListener('keydown',e=>{
+  const k=e.key;
+  if(k==='ArrowRight'||k==='Enter')nxt();
+  else if(k==='ArrowLeft')prev();
+  else if(k.toLowerCase()==='h')document.body.classList.toggle('hc');
+  else if(k.toLowerCase()==='f')toggleFS();
+  else if(k.toLowerCase()==='c')cycleCert();
+  else if(k.toLowerCase()==='a')cycleAward();
+  else if(k.toLowerCase()==='p')openPhotoManager();
+  else if(k==='Escape')closePhotoManager();
+});
+
+/* ── INIT ── */
+loadPhotos();
+buildPhotoGrid();buildMessages();buildSpecialCerts();
+buildWallGrid();buildDreamJobsWall();buildClosing();
+buildParticles();buildS2Lines();
+updateCue();updateProg();updatePhotoStatus();
+</script>
+</body>
+</html>

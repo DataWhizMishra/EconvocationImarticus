@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>E-Convocation — Live</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/econvo.css">
+</head>
+<body>
+<div id="gate">
+  <div class="gate-icon">🔊</div>
+  <div class="gate-tt">Tap to Enter</div>
+  <div class="gate-sub">Turn your sound on for the full experience</div>
+</div>
+<button id="muteBtn" title="Mute/unmute music">🔊</button>
+
+<div id="app">
+<div id="prog"></div>
+<div id="hint"><span class="kb">→</span>Next <span class="kb">←</span>Prev <span class="kb">F</span>Fullscreen <span class="kb">H</span>Hide UI <span class="kb">C</span>Cycle Cert <span class="kb">A</span>Cycle Award</div>
+
+<!-- ══ S1: LOBBY ══ -->
+<div class="slide centered active" id="s1">
+  <div class="s1g"></div><div class="s1glow"></div>
+  <div class="s1pts" id="s1pts"></div>
+  <div class="s1i">
+    <div class="live-p"><div class="ld2"></div><span id="liveLabel">LIVE</span></div>
+    <div class="s1-tt" id="heroTitleEl">…</div>
+    <div class="s1-sb" id="heroSubEl"></div>
+    <div class="cdr" id="cdrBox">
+      <div class="cdb"><div class="cdbn" id="cdm">00</div><div class="cdbl">Mins</div></div>
+      <div class="cdb"><div class="cdbn" id="cds">00</div><div class="cdbl">Secs</div></div>
+    </div>
+    <div class="s1ps">
+      <div class="s1p"><strong>🎓</strong> <span id="statGrads">0</span> Graduates</div>
+      <div class="s1p"><strong>🤖</strong> <span id="statProgram">Program</span></div>
+      <div class="s1p"><strong>📍</strong> Virtual · Live</div>
+      <div class="s1p"><strong>⏱️</strong> <span id="statHours">—</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S2: BATCH INTRO ══ -->
+<div class="slide centered" id="s2">
+  <div class="s2bg"></div><div class="s2lns" id="s2lns"></div>
+  <div class="s2i">
+    <div class="s2badge" id="s2badge">🎓 Imarticus Learning</div>
+    <div class="s2big" id="s2bigEl">…</div>
+    <div class="s2desc" id="s2descEl"></div>
+    <div class="s2sts">
+      <div class="ss"><div class="ssn" id="s2grads">0</div><div class="ssl">Graduates</div></div>
+      <div class="sdiv"></div>
+      <div class="ss"><div class="ssn" id="s2hours">0</div><div class="ssl">Hours</div></div>
+      <div class="sdiv"></div>
+      <div class="ss"><div class="ssn" id="s2projects">0</div><div class="ssl">Projects</div></div>
+      <div class="sdiv"></div>
+      <div class="ss"><div class="ssn">∞</div><div class="ssl">Future</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S3: MEET THE BATCH ══ -->
+<div class="slide" id="s3">
+  <div class="s3w">
+    <div class="s3hdr">
+      <div class="s3tt" id="s3title">Meet the Batch</div>
+      <div class="s3cnt" id="s3count">0 Graduates 🎓</div>
+    </div>
+    <div class="photo-grid" id="photo-grid"></div>
+  </div>
+</div>
+
+<!-- ══ S4: CERTIFICATE ══ -->
+<div class="slide centered" id="s4">
+  <div class="cgbg"></div><div class="cconf" id="cconf"></div>
+  <div class="cert-ctr"><strong id="cidx">1</strong> / <span id="ctotal">0</span></div>
+  <div class="cert-frame">
+    <div class="cftop"><div class="cflog">IL</div><div class="cfo">Imarticus Learning</div></div>
+    <div class="cert-photo-ring" id="cert-photo-ring"><span id="cert-photo-init">AS</span></div>
+    <div class="cfh">Certificate of Completion</div>
+    <div class="cfp2">This is to proudly certify that</div>
+    <div class="cn" id="cname">—</div>
+    <div class="cfc">has successfully completed the</div>
+    <div class="cfbg" id="cfbgEl">🤖 Program</div>
+    <div class="cfline"></div>
+    <div class="cff">
+      <div class="cfsign"><div class="cfsb"></div><div class="cfsn">Programme Director</div></div>
+      <div class="cfdate" id="cfdateEl">Live<br>With Distinction ✨</div>
+      <div class="cfsign"><div class="cfsb"></div><div class="cfsn">Head of Academics</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S5: PERSONAL MESSAGES ══ -->
+<div class="slide" id="s5">
+  <div class="s5w">
+    <div class="il-msg">
+      <div class="il-logo-row"><div class="il-logo">IL</div><div class="il-org">Imarticus Learning</div></div>
+      <div class="il-msg-text" id="orgMsgEl"></div>
+    </div>
+    <div class="ind-msg-title">💌 A Personal Message for Every Graduate</div>
+    <div class="msg-scroll" id="msg-scroll"></div>
+  </div>
+</div>
+
+<!-- ══ S6: SPECIAL CERTS ══ -->
+<div class="slide" id="s6">
+  <div class="sc-wrap">
+    <div class="sc-ey">🏅 Special Recognition</div>
+    <div class="sc-tt">Certificates of Excellence</div>
+    <div class="sc-row" id="scrow"></div>
+  </div>
+</div>
+
+<!-- ══ S7: QUIZ / POLL ══ -->
+<div class="slide" id="s7">
+  <div class="quiz-wrap">
+    <div class="quiz-header">
+      <div class="quiz-tag">🧠 Live on Your Phone</div>
+      <div class="quiz-title" id="quizTitleEl">Live Quiz!</div>
+      <div class="quiz-sub" id="quizSubEl">Answer live — results update instantly.</div>
+    </div>
+    <div class="quiz-body" id="quiz-body">
+      <div class="qprogbar"><div class="qprogfill" id="qpf" style="width:0%"></div></div>
+      <div class="q-card">
+        <div class="q-num-row">
+          <div class="q-num" id="qnum">Question 1</div>
+          <div class="q-timer-row">
+            <span class="q-kind-badge" id="qKindBadge">Quiz</span>
+            <div class="q-timer-track"><div class="q-timer-fill" id="qtf" style="width:100%"></div></div>
+            <div class="q-timer-num" id="qtimer">30</div>
+          </div>
+        </div>
+        <div class="q-text" id="qtext">Waiting for the host to start…</div>
+        <div class="q-opts" id="qopts">
+          <div class="qopt"><div class="qopt-sym">A</div><span id="qo0"></span></div>
+          <div class="qopt"><div class="qopt-sym">B</div><span id="qo1"></span></div>
+          <div class="qopt"><div class="qopt-sym">C</div><span id="qo2"></span></div>
+          <div class="qopt"><div class="qopt-sym">D</div><span id="qo3"></span></div>
+        </div>
+      </div>
+      <div class="q-controls" id="mentorQControls">
+        <button class="q-reveal-btn" id="qrevbtn">👁️ Reveal Answer</button>
+        <button class="q-next-btn" id="qnxtbtn" disabled>Next →</button>
+        <div class="q-note" id="qnote">💬 Waiting…</div>
+      </div>
+      <div class="q-controls" id="learnerQNote" style="display:none;">
+        <div class="q-note" id="learnerQNoteText" style="margin-left:0;">Tap an answer above.</div>
+      </div>
+      <div class="quiz-complete" id="qcomplete">
+        <div class="qc-emoji">🎉</div>
+        <div class="qc-title">Quiz Complete!</div>
+        <div class="qc-sub">Thanks for playing!</div>
+        <button class="qc-restart" id="qcRestartBtn">🔄 Play Again</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S8: PHOTO WALL ══ -->
+<div class="slide" id="s8">
+  <div class="s8w">
+    <div class="wall-hdr">
+      <div class="wall-ey">⭐ The Big Reveal Moment</div>
+      <div class="wall-tt" id="wallTitleEl">🎉 THE LEGENDS!</div>
+      <div class="wall-sb">Screenshot this right now! 📸</div>
+    </div>
+    <div class="wall-grid" id="wall-grid"></div>
+  </div>
+</div>
+
+<!-- ══ S9: AWARDS ══ -->
+<div class="slide centered" id="s9">
+  <div class="aw-glow"></div>
+  <div class="aw-ctr" id="awctr">Award 1/1</div>
+  <div class="aw-inner">
+    <span class="trophy">🏆</span>
+    <div class="aw-cat" id="awCatEl">🗳️ Peer-Voted</div>
+    <div class="aw-title" id="awtit">—</div>
+    <div class="aw-winner" id="awwin">—</div>
+    <div class="aw-role" id="awrole"></div>
+    <div class="aw-stars">⭐⭐⭐⭐⭐</div>
+  </div>
+</div>
+
+<!-- ══ S10: CERTIFICATE DOWNLOAD ══ -->
+<div class="slide centered" id="s10">
+  <div class="dl-glow"></div>
+  <div class="dl-inner">
+    <span class="dl-eagle">🦅</span>
+    <div class="dl-eyebrow">Imarticus Learning · Official Certificate</div>
+    <div class="dl-title">Download Your<br><span class="dlt">Certificate Now!</span></div>
+    <div class="dl-sub" id="dlSubEl">Your certificate is ready and waiting for you on the <strong style="color:#fff;">Pegasus Platform</strong>! 🎓</div>
+    <div class="dl-steps">
+      <div class="dl-step" style="animation-delay:.05s"><div class="dl-step-icon">📱</div><div class="dl-step-label">Open Pegasus App</div><div class="dl-step-sub">Imarticus Learning</div></div>
+      <div class="dl-step" style="animation-delay:.15s"><div class="dl-step-icon">🎓</div><div class="dl-step-label">Go to My Courses</div><div class="dl-step-sub" id="dlProgramEl">Find your Program</div></div>
+      <div class="dl-step" style="animation-delay:.25s"><div class="dl-step-icon">⬇️</div><div class="dl-step-label">Download Certificate</div><div class="dl-step-sub">Save to your device</div></div>
+      <div class="dl-step" style="animation-delay:.35s"><div class="dl-step-icon">🔗</div><div class="dl-step-label">Share on LinkedIn</div><div class="dl-step-sub">Let the world know!</div></div>
+    </div>
+    <div class="dl-note">💡 <strong>Don't have the Pegasus app yet?</strong> Search <strong>"Pegasus Imarticus"</strong> on the App Store or Google Play and log in with your registered email. 🌟</div>
+  </div>
+</div>
+
+<!-- ══ S11: CLOSING ══ -->
+<div class="slide centered" id="s11">
+  <div class="cl-glow"></div>
+  <div class="cl-i">
+    <span class="cl-em">🎓</span>
+    <div class="cl-tt" id="clTitleEl">Congratulations<span class="tg">!</span></div>
+    <div class="cl-sb" id="closingMsgEl"></div>
+    <div class="pegasus-box">
+      <div class="peg-tag">📱 Important · Your Certificate</div>
+      <div class="peg-title">Download on <span>Pegasus</span> 🦅</div>
+      <div class="peg-text">Your official certificate is waiting for you on the <strong>Imarticus Learning Pegasus platform.</strong> Download it, share it on LinkedIn! 🌟</div>
+      <div class="peg-steps">
+        <div class="peg-step">📱 Open Pegasus App</div>
+        <div class="peg-step">🎓 Go to My Courses</div>
+        <div class="peg-step">⬇️ Download Certificate</div>
+        <div class="peg-step">🔗 Share on LinkedIn</div>
+      </div>
+    </div>
+    <div class="cl-links" id="clLinksEl"></div>
+    <div class="cl-batch" id="clbatch"></div>
+  </div>
+</div>
+
+<!-- ══ CUE BAR (mentor only) ══ -->
+<div id="cue">
+  <div class="ctag">HOST CUE</div>
+  <div class="cmsg" id="cmsg">Loading…</div>
+  <div class="cmu" id="cmu"><div class="md"></div>🎵 Music playing</div>
+  <div class="cnn" id="cnn">01/11</div>
+  <div style="display:flex;gap:6px;">
+    <button class="cbt p" id="prevBtn">← Back</button>
+    <button class="cbt n" id="nxtBtn">Next →</button>
+  </div>
+</div>
+
+<div class="learner-note" id="learnerNote" style="display:none;">🎬 Following the host live…</div>
+</div>
+
+<script src="/assets/api.js"></script>
+<script src="/assets/auth-client.js"></script>
+<script src="/assets/music-player.js"></script>
+<script>
+const slideIds = ['s1','s2','s3','s4','s5','s6','s7','s8','s9','s10','s11'];
+const params = new URLSearchParams(window.location.search);
+// Netlify's /live/:slug -> /live.html?slug=:slug rule is a rewrite (status 200):
+// it serves this page's content for the ORIGINAL request URL without the browser
+// ever seeing that appended query string, so the slug has to come from the path.
+// ?mode=mentor still works normally since that's part of the real request URL.
+function resolveSlug(prefix){
+  const qsSlug = params.get('slug');
+  if(qsSlug) return qsSlug;
+  const parts = window.location.pathname.split('/').filter(Boolean);
+  const idx = parts.indexOf(prefix);
+  if(idx !== -1 && parts[idx+1]) return decodeURIComponent(parts[idx+1]);
+  return null;
+}
+const slug = resolveSlug('live');
+const wantsMentor = params.get('mode') === 'mentor';
+
+let batch = null, roster = [], messages = {}, certs = [], awards = [], questions = [];
+let mode = null; // 'mentor' | 'learner'
+let mentorToken = null;
+let learnerSession = null;
+let cur = 0, certIdx = 0, awIdx = 0, qIdx = 0, qRevealed = false;
+let qTimerInt = null, qTimerVal = 30;
+let quizStarted = false;
+let answeredIndexByQuestion = {};
+let lastAppliedSlideIndex = -1;
+let lastRenderedQuestionId = null;
+
+function initials(name){ return (name||'?').split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase(); }
+
+/* ---------- LOAD ---------- */
+async function boot(){
+  if(!slug){ showFatal('Missing convocation link.'); return; }
+  let data;
+  try{
+    data = await Api.apiGet('live-bootstrap', { slug });
+  }catch(e){
+    showFatal(e.statusCode === 404 ? "This convocation doesn't exist." : e.message);
+    return;
+  }
+  batch = data.batch;
+  roster = data.roster;
+  data.messages.forEach(m => { messages[m.learnerId] = m.messageText; });
+  certs = data.certs;
+  awards = data.awards;
+  questions = data.questions;
+
+  if(wantsMentor){
+    mentorToken = AuthClient.getMentorToken();
+    if(!mentorToken){
+      window.location.href = `/admin/login.html?next=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+      return;
+    }
+    mode = 'mentor';
+  } else {
+    learnerSession = AuthClient.getLearnerSession(batch.id);
+    if(!learnerSession){
+      window.location.href = `/join/${batch.joinSlug}`;
+      return;
+    }
+    mode = 'learner';
+  }
+
+  document.body.classList.toggle('learner-mode', mode === 'learner');
+  document.getElementById('learnerNote').style.display = mode === 'learner' ? 'block' : 'none';
+
+  renderStaticContent();
+  buildParticles();
+  buildS2Lines();
+  startCountdown();
+
+  MusicPlayer.init(batch.musicDefaultUrl || (batch.settings.music && batch.settings.music.default));
+
+  if(mode === 'mentor'){
+    document.getElementById('nxtBtn').addEventListener('click', nxt);
+    document.getElementById('prevBtn').addEventListener('click', prev);
+    document.getElementById('qrevbtn').addEventListener('click', mentorRevealAnswer);
+    document.getElementById('qnxtbtn').addEventListener('click', mentorNextQuestion);
+    document.getElementById('qcRestartBtn').addEventListener('click', () => mentorOpenQuestion(0));
+    document.getElementById('mentorQControls').style.display = 'flex';
+    document.getElementById('learnerQNote').style.display = 'none';
+    updateCue();
+  } else {
+    document.getElementById('cue').style.display = 'none';
+    document.getElementById('mentorQControls').style.display = 'none';
+    document.getElementById('learnerQNote').style.display = 'flex';
+  }
+
+  updateProg();
+  startPolling();
+}
+
+function showFatal(msg){
+  document.body.innerHTML = `<div id="joinRequiredBox"><div><div style="font-family:var(--fb);font-size:32px;letter-spacing:1px;margin-bottom:10px;">⚠️ ${msg}</div><div style="color:var(--muted);font-size:12px;">Check the link your mentor shared with you.</div></div></div>`;
+}
+
+/* ---------- STATIC CONTENT RENDER ---------- */
+function renderStaticContent(){
+  const s = batch.settings || {};
+  const heroTitle = s.heroTitle || batch.name;
+  const heroAccent = s.heroTitleAccent || '';
+  const cohort = batch.cohortLabel || batch.name;
+  const grads = (s.stats && s.stats.graduates) || roster.length;
+  const hours = (s.stats && s.stats.hours) || '';
+  const projects = (s.stats && s.stats.projects) || '';
+
+  document.title = `${cohort} — E-Convocation`;
+  document.getElementById('heroTitleEl').innerHTML = `${heroTitle}<span class="tg">${heroAccent}</span>`;
+  document.getElementById('heroSubEl').textContent = s.heroSubtitle || `${batch.programName || ''} · ${cohort}`;
+  document.getElementById('statGrads').textContent = grads;
+  document.getElementById('statProgram').textContent = batch.programName || batch.name;
+  document.getElementById('statHours').textContent = hours ? `${hours} Hours` : '—';
+
+  document.getElementById('s2badge').textContent = `🎓 Imarticus Learning · ${batch.programName || batch.name}`;
+  document.getElementById('s2bigEl').innerHTML = `${heroTitle}<span class="gb"> ${heroAccent}</span>`;
+  document.getElementById('s2descEl').textContent = `${grads} people. One incredible journey. This is your story, ${cohort}.`;
+  document.getElementById('s2grads').textContent = grads;
+  document.getElementById('s2hours').textContent = hours || '—';
+  document.getElementById('s2projects').textContent = projects || '—';
+
+  document.getElementById('s3title').textContent = `Meet ${cohort}`;
+  document.getElementById('s3count').textContent = `${roster.length} Graduates 🎓`;
+
+  document.getElementById('ctotal').textContent = roster.length;
+  document.getElementById('cfbgEl').textContent = `🤖 ${batch.programName || batch.name}`;
+  document.getElementById('cfdateEl').innerHTML = `${batch.eventDateLabel || 'Live'}<br>With Distinction ✨`;
+
+  const orgMsgTemplate = s.orgMessage || `"To every member of {{cohortLabel}} — you didn't just learn, you grew. The future has your name on it."`;
+  document.getElementById('orgMsgEl').innerHTML = orgMsgTemplate.replace(/\{\{cohortLabel\}\}/g, `<span class="ilg">${cohort}</span>`);
+
+  document.getElementById('quizTitleEl').textContent = `${cohort} — Live Quiz!`;
+  document.getElementById('wallTitleEl').textContent = `🎉 ${cohort} — THE LEGENDS!`;
+  document.getElementById('awCatEl').textContent = `🗳️ Peer-Voted · ${cohort}`;
+  document.getElementById('dlProgramEl').textContent = `Find ${batch.programName || batch.name}`;
+  document.getElementById('dlSubEl').innerHTML = `Your ${batch.programName || batch.name} certificate is ready and waiting for you on the <strong style="color:#fff;">Pegasus Platform</strong>! 🎓`;
+  document.getElementById('clTitleEl').innerHTML = `Congratulations<span class="tg">${cohort}!</span>`;
+  document.getElementById('closingMsgEl').textContent = s.closingMessage || `${roster.length} incredible humans. Imarticus is proud of every one of you. 🚀`;
+
+  const links = s.links || {};
+  const linkEl = document.getElementById('clLinksEl');
+  linkEl.innerHTML = '';
+  if(links.linkedinAlumni) linkEl.innerHTML += `<a class="cl-link g" href="${links.linkedinAlumni}" target="_blank">💼 LinkedIn Alumni</a>`;
+  if(links.memoryWall) linkEl.innerHTML += `<a class="cl-link w" href="${links.memoryWall}" target="_blank">📸 Memory Wall</a>`;
+
+  buildPhotoGrid();
+  buildMessages();
+  buildSpecialCerts();
+  buildWallGrid();
+  buildClosingPills();
+  renderCert(0);
+  if(awards.length) renderAward(0);
+}
+
+function buildPhotoGrid(){
+  const g = document.getElementById('photo-grid'); g.innerHTML = '';
+  roster.forEach((r,i) => {
+    const c = document.createElement('div'); c.className = 'photo-card'; c.style.animationDelay = (i*.035)+'s';
+    c.innerHTML = `<div class="pc-photo" style="background:${r.colorHex};--c:${r.colorHex};"><span style="position:relative;z-index:1;">${r.photoUrl ? '' : initials(r.name)}</span><div class="pc-ring"></div>${r.photoUrl ? `<img src="${r.photoUrl}" alt="">` : ''}</div><div class="pc-name">${r.name.split(' ')[0]}</div>`;
+    g.appendChild(c);
+  });
+}
+function buildWallGrid(){
+  const g = document.getElementById('wall-grid'); g.innerHTML = '';
+  roster.forEach((r,i) => {
+    const c = document.createElement('div'); c.className = 'wc'; c.style.cssText = `border:1.5px solid ${r.colorHex}33;animation-delay:${i*.035}s;`;
+    c.innerHTML = `<div class="wc-photo" style="background:${r.colorHex};"><span style="position:relative;z-index:1;">${r.photoUrl ? '' : initials(r.name)}</span>${r.photoUrl ? `<img src="${r.photoUrl}" alt="">` : ''}</div><div class="wc-name">${r.name.split(' ')[0]}</div><div class="wc-role" style="color:${r.colorHex};">Graduate ✨</div>`;
+    g.appendChild(c);
+  });
+}
+function buildMessages(){
+  const g = document.getElementById('msg-scroll'); g.innerHTML = '';
+  roster.forEach((r,i) => {
+    const c = document.createElement('div'); c.className = 'ind-card'; c.style.animationDelay = (i*.04)+'s';
+    c.innerHTML = `<div class="ind-card-top"><div class="ind-av" style="background:${r.colorHex};">${r.photoUrl ? `<img src="${r.photoUrl}" alt="">` : `<span style="position:relative;z-index:1;">${initials(r.name)}</span>`}</div><div class="ind-name">${r.name.split(' ')[0]}</div></div><div class="ind-msg-body">"${messages[r.learnerId] || 'Your dedication throughout this program has been truly inspiring. Keep shining!'}"</div>`;
+    g.appendChild(c);
+  });
+}
+function buildSpecialCerts(){
+  const row = document.getElementById('scrow'); row.innerHTML = '';
+  certs.forEach((c,i) => {
+    const el = document.createElement('div'); el.className = `sc-card ${c.type}`; el.style.animationDelay = (i*.1)+'s';
+    const wHTML = c.winners.length === 1 ? `<div class="sc-win">${c.winners[0]}</div>` : c.winners.map(w => `<div class="sc-win" style="font-size:clamp(10px,1.3vw,15px);">${w}</div>`).join('');
+    el.innerHTML = `<div class="sc-rib"></div><span class="sc-ico">${c.icon}</span><div class="sc-lb">${c.label}</div><div class="sc-aw">${c.awardTitle}</div>${wHTML}<div class="sc-desc">${c.description||''}</div>`;
+    row.appendChild(el);
+  });
+}
+function buildClosingPills(){
+  const w = document.getElementById('clbatch'); w.innerHTML = '';
+  roster.forEach((r,i) => {
+    const p = document.createElement('div'); p.className = 'clp'; p.style.animationDelay = (i*.04)+'s';
+    p.innerHTML = `<div class="cldot" style="background:${r.colorHex};"></div>${r.name.split(' ')[0]}`;
+    w.appendChild(p);
+  });
+}
+
+/* ---------- CERTIFICATE / AWARD CYCLING ---------- */
+function renderCert(idx){
+  const r = roster[idx]; if(!r) return;
+  certIdx = idx;
+  document.getElementById('cname').textContent = r.name;
+  document.getElementById('cidx').textContent = idx+1;
+  const ring = document.getElementById('cert-photo-ring');
+  const init = document.getElementById('cert-photo-init');
+  init.textContent = initials(r.name);
+  let img = ring.querySelector('img');
+  if(r.photoUrl){ if(!img){ img = document.createElement('img'); ring.appendChild(img); } img.src = r.photoUrl; init.style.display = 'none'; }
+  else { if(img) img.remove(); init.style.display = ''; }
+}
+function mentorCycleCert(){
+  if(!roster.length) return;
+  renderCert((certIdx+1) % roster.length);
+  spawnConfetti();
+  LiveState.set({ certCycleIndex: certIdx });
+}
+function renderAward(idx){
+  const a = awards[idx]; if(!a) return;
+  awIdx = idx;
+  document.getElementById('awtit').textContent = a.category;
+  document.getElementById('awwin').textContent = a.winnerName;
+  document.getElementById('awrole').textContent = a.winnerRole || '';
+  document.getElementById('awctr').textContent = `Award ${idx+1}/${awards.length}`;
+}
+function mentorCycleAward(){
+  if(!awards.length) return;
+  renderAward((awIdx+1) % awards.length);
+  LiveState.set({ awardCycleIndex: awIdx });
+}
+
+/* ---------- LIVE STATE (mentor writes, everyone polls) ---------- */
+const LiveState = {
+  set(patch){
+    if(mode !== 'mentor') return Promise.resolve();
+    return Api.apiPost('live-state-set', { batchId: batch.id, ...patch }, mentorToken).catch(()=>{});
+  },
+};
+
+const POLL_DELAY_MS = 4000;
+function startPolling(){
+  pollLiveState();
+}
+// Self-scheduling instead of setInterval: the Apps Script backend can take a
+// few seconds per call, and a fixed interval would let polls pile up faster
+// than they resolve. This always waits for one to finish before queuing the next.
+async function pollLiveState(){
+  try{
+    const state = await Api.apiGet('live-state-get', { batchId: batch.id });
+    if(mode === 'learner'){
+      applyLearnerState(state);
+    } else if(slideIds[cur] === 's7'){
+      renderQuizTally(state);
+    }
+  }catch(e){ /* transient - ignore, try again next tick */ }
+  setTimeout(pollLiveState, POLL_DELAY_MS);
+}
+function applyLearnerState(state){
+  if(state.currentSlideIndex !== lastAppliedSlideIndex){
+    lastAppliedSlideIndex = state.currentSlideIndex;
+    goTo(state.currentSlideIndex, { fromServer:true });
+  }
+  if(state.certCycleIndex !== certIdx) renderCert(state.certCycleIndex);
+  if(awards.length && state.awardCycleIndex !== awIdx) renderAward(state.awardCycleIndex);
+  if(slideIds[state.currentSlideIndex] === 's7') renderLearnerQuiz(state);
+}
+
+/* ---------- SLIDE NAVIGATION ---------- */
+function goTo(n, opts){
+  opts = opts || {};
+  document.querySelector('.slide.active')?.classList.remove('active');
+  cur = Math.max(0, Math.min(n, slideIds.length-1));
+  document.getElementById(slideIds[cur]).classList.add('active');
+  updateProg();
+  onEnter(cur);
+  if(mode === 'mentor'){
+    updateCue();
+    if(!opts.fromServer){
+      LiveState.set({ currentSlideIndex: cur, currentSlideId: slideIds[cur] });
+    }
+  }
+}
+function nxt(){ cur === slideIds.length-1 ? goTo(0) : goTo(cur+1); }
+function prev(){ cur > 0 && goTo(cur-1); }
+function onEnter(n){
+  if(slideIds[n] === 's4') spawnConfetti();
+  if(slideIds[n] === 's8'){ spawnConfetti(); setTimeout(spawnConfetti,700); }
+  if(slideIds[n] === 's11'){ spawnConfetti(); setTimeout(spawnConfetti,700); }
+  if(mode === 'mentor' && slideIds[n] === 's7' && !quizStarted && questions.length){
+    quizStarted = true;
+    mentorOpenQuestion(0);
+  }
+}
+function updateProg(){ document.getElementById('prog').style.width = ((cur/(slideIds.length-1))*100)+'%'; }
+
+const GENERIC_CUES = (cohort) => [
+  `Lobby is live! Welcome everyone to the ${cohort} E-Convocation. Say hello and get the energy going!`,
+  `Play the batch's journey/sizzle reel now if you have one. Say: "This is your journey."`,
+  `Introduce every learner of ${cohort}! Photos appear automatically.`,
+  `Press C to cycle each learner's certificate. Say their name aloud and celebrate them!`,
+  `Show the personal message for each graduate. Say: "We have a message for each one of you."`,
+  `Spotlight each special recognition winner. Unmute them to react!`,
+  `Live quiz & polls! Learners answer live on their own phones — results update on your screen. Reveal after time's up.`,
+  `BIG MOMENT! Screenshare the full photo wall. Say: "${cohort} — look at your class!"`,
+  `Press A to cycle each award. Spotlight the winner and unmute them!`,
+  `Remind everyone to download their certificate from the Pegasus app.`,
+  `Closing! Thank the batch, share the links, and celebrate together!`,
+];
+function updateCue(){
+  const cohort = batch.cohortLabel || batch.name;
+  const overrides = (batch.settings && batch.settings.cues) || null;
+  const cues = overrides && overrides.length === 11 ? overrides : GENERIC_CUES(cohort);
+  document.getElementById('cmsg').textContent = cues[cur];
+  document.getElementById('cnn').textContent = String(cur+1).padStart(2,'0')+'/'+String(slideIds.length).padStart(2,'0');
+  document.getElementById('nxtBtn').textContent = cur === slideIds.length-1 ? '🔁 Restart' : 'Next →';
+}
+
+/* ---------- QUIZ / POLL: MENTOR ---------- */
+function mentorOpenQuestion(idx){
+  qIdx = idx; qRevealed = false;
+  if(idx >= questions.length){ mentorEndQuiz(); return; }
+  const q = questions[idx];
+  document.getElementById('quiz-body').style.display = 'flex';
+  document.getElementById('qcomplete').style.display = 'none';
+  document.getElementById('qnum').textContent = `Question ${idx+1} of ${questions.length}`;
+  document.getElementById('qKindBadge').textContent = q.kind === 'poll' ? 'Poll' : 'Quiz';
+  document.getElementById('qKindBadge').className = 'q-kind-badge ' + q.kind;
+  document.getElementById('qtext').textContent = q.text;
+  document.getElementById('qpf').style.width = ((idx+1)/questions.length*100)+'%';
+  ['A','B','C','D'].forEach((_,i) => {
+    const span = document.getElementById('qo'+i);
+    const opt = span.parentElement;
+    span.textContent = q.options[i] || '';
+    opt.style.display = q.options[i] ? 'flex' : 'none';
+    opt.className = 'qopt';
+    const bar = opt.querySelector('.qopt-bar'); if(bar) bar.remove();
+    const count = opt.querySelector('.qopt-count'); if(count) count.remove();
+  });
+  document.getElementById('qrevbtn').disabled = false;
+  document.getElementById('qnxtbtn').disabled = true;
+  document.getElementById('qnote').textContent = q.kind === 'poll' ? '🗳️ Poll — learners vote live on their phones!' : '💬 Learners answer live on their phones — then Reveal!';
+  LiveState.set({ currentQuestionId: q.questionId, questionIndex: idx, quizPhase: 'open' });
+  startQTimer(q.timerSeconds || 30);
+}
+function startQTimer(total){
+  qTimerVal = total; clearInterval(qTimerInt);
+  document.getElementById('qtf').style.width = '100%';
+  document.getElementById('qtimer').textContent = qTimerVal;
+  qTimerInt = setInterval(() => {
+    qTimerVal--;
+    const tf = document.getElementById('qtf'), tn = document.getElementById('qtimer');
+    if(tf) tf.style.width = (Math.max(qTimerVal,0)/total*100)+'%';
+    if(tn){ tn.textContent = Math.max(qTimerVal,0); tn.style.color = qTimerVal<=5 ? '#EF4444' : 'var(--brand)'; }
+    if(qTimerVal <= 0){ clearInterval(qTimerInt); if(!qRevealed) mentorRevealAnswer(); }
+  }, 1000);
+}
+async function mentorRevealAnswer(){
+  if(qRevealed) return;
+  qRevealed = true; clearInterval(qTimerInt);
+  document.getElementById('qrevbtn').disabled = true;
+  document.getElementById('qnxtbtn').disabled = false;
+  await LiveState.set({ quizPhase: 'revealed' });
+  try{
+    const state = await Api.apiGet('live-state-get', { batchId: batch.id });
+    renderQuizTally(state);
+  }catch(e){}
+}
+function renderQuizTally(state){
+  if(!state.tally) return;
+  const tally = state.tally;
+  ['A','B','C','D'].forEach((L,i) => {
+    const opt = document.getElementById('qo'+i)?.parentElement;
+    if(!opt || opt.style.display === 'none') return;
+    let bar = opt.querySelector('.qopt-bar');
+    if(!bar){ bar = document.createElement('div'); bar.className = 'qopt-bar'; opt.appendChild(bar); }
+    const pct = tally.total ? Math.round((tally[L]/tally.total)*100) : 0;
+    bar.style.width = pct + '%';
+    let count = opt.querySelector('.qopt-count');
+    if(!count){ count = document.createElement('span'); count.className = 'qopt-count'; opt.appendChild(count); }
+    count.textContent = `${tally[L]}`;
+  });
+  if(state.quizPhase === 'revealed' && state.correctIndex !== undefined && state.correctIndex !== null){
+    ['A','B','C','D'].forEach((_,i) => {
+      const opt = document.getElementById('qo'+i)?.parentElement;
+      if(!opt || opt.style.display === 'none') return;
+      opt.classList.add('revealed', i === state.correctIndex ? 'correct' : 'wrong');
+    });
+    if(mode === 'mentor'){
+      document.getElementById('qnote').textContent = `✅ ${state.explanation || ''} (${state.correctCount||0}/${state.tally.total} correct)`;
+    }
+  }
+}
+function mentorNextQuestion(){
+  qIdx++;
+  if(qIdx >= questions.length){ mentorEndQuiz(); return; }
+  mentorOpenQuestion(qIdx);
+}
+function mentorEndQuiz(){
+  document.getElementById('quiz-body').style.display = 'none';
+  document.getElementById('qcomplete').style.display = 'flex';
+  LiveState.set({ quizPhase: 'complete' });
+}
+
+/* ---------- QUIZ / POLL: LEARNER ---------- */
+function renderLearnerQuiz(state){
+  if(state.quizPhase === 'idle'){
+    document.getElementById('quiz-body').style.display = 'flex';
+    document.getElementById('qcomplete').style.display = 'none';
+    document.getElementById('qtext').textContent = 'Waiting for the host to start the quiz…';
+    document.querySelectorAll('#qopts .qopt').forEach(el => { el.style.display = 'none'; el.onclick = null; });
+    document.getElementById('learnerQNoteText').textContent = 'Sit tight — the quiz will begin shortly!';
+    lastRenderedQuestionId = null;
+    return;
+  }
+  if(state.quizPhase === 'complete'){
+    document.getElementById('quiz-body').style.display = 'none';
+    document.getElementById('qcomplete').style.display = 'flex';
+    return;
+  }
+  const q = questions[state.questionIndex];
+  if(!q || q.questionId !== state.currentQuestionId){
+    document.getElementById('qtext').textContent = 'Waiting for the host…';
+    return;
+  }
+  if(q.questionId !== lastRenderedQuestionId){
+    lastRenderedQuestionId = q.questionId;
+    document.getElementById('quiz-body').style.display = 'flex';
+    document.getElementById('qcomplete').style.display = 'none';
+    document.getElementById('qnum').textContent = `Question ${state.questionIndex+1} of ${questions.length}`;
+    document.getElementById('qKindBadge').textContent = q.kind === 'poll' ? 'Poll' : 'Quiz';
+    document.getElementById('qKindBadge').className = 'q-kind-badge ' + q.kind;
+    document.getElementById('qtext').textContent = q.text;
+    document.getElementById('qpf').style.width = ((state.questionIndex+1)/questions.length*100)+'%';
+    const already = answeredIndexByQuestion[q.questionId];
+    ['A','B','C','D'].forEach((_,i) => {
+      const span = document.getElementById('qo'+i);
+      const opt = span.parentElement;
+      span.textContent = q.options[i] || '';
+      opt.style.display = q.options[i] ? 'flex' : 'none';
+      opt.className = 'qopt' + (already === i ? ' selected' : '');
+      opt.onclick = () => submitAnswer(q.questionId, i);
+      const bar = opt.querySelector('.qopt-bar'); if(bar) bar.remove();
+      const count = opt.querySelector('.qopt-count'); if(count) count.remove();
+    });
+  }
+
+  const noteEl = document.getElementById('learnerQNoteText');
+  const answered = answeredIndexByQuestion[q.questionId];
+  if(state.quizPhase === 'open'){
+    noteEl.textContent = answered !== undefined
+      ? '✅ Answer locked in — waiting for the host to reveal…'
+      : (q.kind === 'poll' ? '🗳️ Tap your choice above!' : '👆 Tap your answer above!');
+  } else if(state.quizPhase === 'revealed'){
+    ['A','B','C','D'].forEach((_,i) => {
+      const opt = document.getElementById('qo'+i)?.parentElement;
+      if(opt) opt.onclick = null;
+    });
+    renderQuizTally(state);
+    if(q.kind === 'quiz' && state.correctIndex !== undefined && state.correctIndex !== null){
+      noteEl.textContent = answered === undefined ? "⏱️ Time's up — you didn't answer in time." :
+        (answered === state.correctIndex ? '🎉 You got it right!' : '❌ Not quite — see the correct answer above.');
+    } else {
+      noteEl.textContent = '📊 Here are the live results!';
+    }
+  } else {
+    noteEl.textContent = 'Waiting for the host to open this question…';
+  }
+}
+async function submitAnswer(questionId, idx){
+  if(answeredIndexByQuestion[questionId] !== undefined) return;
+  answeredIndexByQuestion[questionId] = idx;
+  document.querySelectorAll('#qopts .qopt').forEach((el,i) => el.classList.toggle('selected', i === idx));
+  document.getElementById('learnerQNoteText').textContent = '✅ Answer locked in — waiting for the host to reveal…';
+  try{
+    await Api.apiPost('response-submit', { batchId: batch.id, questionId, selectedOption: idx }, learnerSession.learnerToken);
+  }catch(e){
+    delete answeredIndexByQuestion[questionId];
+    document.getElementById('learnerQNoteText').textContent = e.message || 'Could not submit — tap again.';
+  }
+}
+
+/* ---------- COUNTDOWN ---------- */
+function startCountdown(){
+  function tick(){
+    const cdrBox = document.getElementById('cdrBox');
+    const liveLabel = document.getElementById('liveLabel');
+    if(!batch.eventDateISO){ if(cdrBox) cdrBox.style.display = 'none'; if(liveLabel) liveLabel.textContent = 'LIVE'; return; }
+    const diff = new Date(batch.eventDateISO).getTime() - Date.now();
+    if(diff <= 0){
+      if(cdrBox) cdrBox.style.display = 'none';
+      if(liveLabel) liveLabel.textContent = 'LIVE NOW';
+      return;
+    }
+    if(liveLabel) liveLabel.textContent = 'STARTING SOON';
+    const totalSecs = Math.floor(diff/1000);
+    const mins = Math.floor(totalSecs/60), secs = totalSecs % 60;
+    const em = document.getElementById('cdm'), es = document.getElementById('cds');
+    if(em) em.textContent = String(Math.min(mins,999)).padStart(2,'0');
+    if(es) es.textContent = String(secs).padStart(2,'0');
+  }
+  tick();
+  setInterval(tick, 1000);
+}
+
+/* ---------- CONFETTI / PARTICLES ---------- */
+function spawnConfetti(){
+  const w = document.getElementById('cconf'); if(!w) return;
+  const cols = ['#00C896','#FFD60A','#FF5C35','#FF3CAC','#8B5CF6','#fff','#3498DB'];
+  for(let i=0;i<80;i++){
+    const p = document.createElement('div'); p.className = 'cfp';
+    const sz = 4+Math.random()*10;
+    p.style.cssText = `--w:${sz}px;--h:${sz}px;--c:${cols[i%cols.length]};--r:${Math.random()>.5?'50%':'2px'};--d:${2+Math.random()*2.5}s;--dl:${Math.random()*.6}s;--dx:${(Math.random()-.5)*260}px;left:${Math.random()*100}%;`;
+    w.appendChild(p); setTimeout(()=>p.remove(),4000);
+  }
+}
+function buildParticles(){
+  const w = document.getElementById('s1pts');
+  const cols = ['#00C896','#3B82F6','#FFD60A','#FF3CAC','#8B5CF6'];
+  for(let i=0;i<22;i++){
+    const p = document.createElement('div'); p.className = 'pt';
+    const sz = 2+Math.random()*4;
+    p.style.cssText = `width:${sz}px;height:${sz}px;background:${cols[i%cols.length]};left:${Math.random()*100}%;--d:${5+Math.random()*8}s;--dl:${Math.random()*5}s;opacity:.35;`;
+    w.appendChild(p);
+  }
+}
+function buildS2Lines(){
+  const w = document.getElementById('s2lns'); if(!w) return;
+  for(let i=0;i<7;i++){
+    const l = document.createElement('div'); l.className = 's2ln';
+    l.style.cssText = `top:${8+i*13}%;--d:${4+Math.random()*5}s;--dl:${Math.random()*4}s;width:${55+Math.random()*45}%;`;
+    w.appendChild(l);
+  }
+}
+
+/* ---------- KEYBOARD (mentor only, except fullscreen/mute) ---------- */
+function toggleFS(){ if(!document.fullscreenElement) document.documentElement.requestFullscreen().catch(()=>{}); else document.exitFullscreen(); }
+document.addEventListener('keydown', e => {
+  const k = e.key;
+  if(k.toLowerCase() === 'f'){ toggleFS(); return; }
+  if(k.toLowerCase() === 'm'){ updateMuteBtn(MusicPlayer.toggleMute()); return; }
+  if(mode !== 'mentor') return;
+  if(k === 'ArrowRight' || k === 'Enter') nxt();
+  else if(k === 'ArrowLeft') prev();
+  else if(k.toLowerCase() === 'h') document.body.classList.toggle('hc');
+  else if(k.toLowerCase() === 'c') mentorCycleCert();
+  else if(k.toLowerCase() === 'a') mentorCycleAward();
+});
+
+/* ---------- MUTE BUTTON ---------- */
+function updateMuteBtn(muted){ document.getElementById('muteBtn').textContent = muted ? '🔇' : '🔊'; }
+document.getElementById('muteBtn').addEventListener('click', () => updateMuteBtn(MusicPlayer.toggleMute()));
+updateMuteBtn(MusicPlayer.isMuted());
+
+boot();
+</script>
+</body>
+</html>

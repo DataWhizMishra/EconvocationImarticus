@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Join Convocation — Imarticus</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/theme.css">
+<style>
+  body{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;}
+  .join-card{max-width:440px;width:100%;text-align:center;}
+  .join-logo{width:52px;height:52px;background:var(--brand);border-radius:12px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;color:#000;margin:0 auto 16px;}
+  .join-name{font-family:var(--fb);font-size:clamp(26px,5vw,38px);letter-spacing:1px;margin-bottom:6px;}
+  .join-sub{font-size:12px;color:var(--muted);margin-bottom:26px;line-height:1.6;}
+  .name-results{max-height:220px;overflow-y:auto;text-align:left;border-radius:10px;margin-top:6px;}
+  .name-opt{padding:10px 13px;border-radius:8px;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:10px;}
+  .name-opt:hover,.name-opt.active{background:rgba(0,200,150,.1);}
+  .name-avatar{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;flex-shrink:0;overflow:hidden;position:relative;}
+  .name-avatar img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+  .not-listed{font-size:11px;color:var(--muted);margin-top:10px;cursor:pointer;text-decoration:underline;}
+  #gate{position:fixed;inset:0;background:#000;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;cursor:pointer;text-align:center;padding:20px;}
+  #gate.hidden{display:none;}
+  .gate-tt{font-family:var(--fb);font-size:clamp(24px,5vw,40px);letter-spacing:2px;}
+  .gate-sub{font-size:12px;color:var(--muted);}
+  .gate-icon{font-size:44px;animation:pulse 1.4s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.12);}}
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <div class="gate-icon">🔊</div>
+  <div class="gate-tt">Tap to Enter</div>
+  <div class="gate-sub">Turn your sound on for the full experience</div>
+</div>
+
+<div class="join-card card" id="joinCard" style="display:none;">
+  <div class="join-logo">IL</div>
+  <div class="eyebrow" id="joinEyebrow">Imarticus Learning · E-Convocation</div>
+  <div class="join-name" id="batchName">Loading…</div>
+  <div class="join-sub" id="joinSub">Find your name below to join the ceremony.</div>
+
+  <div id="joinBody">
+    <div class="field" style="text-align:left;">
+      <label class="field-label">Your Name</label>
+      <input type="text" id="nameInput" placeholder="Start typing your name…" autocomplete="off">
+      <div class="name-results" id="nameResults"></div>
+    </div>
+    <div id="errorBox"></div>
+    <button class="btn" id="joinBtn" style="width:100%;justify-content:center;" disabled>🎓 Join Convocation</button>
+    <div class="not-listed" id="notListedBtn">Not on the list? Tap here to type your name freely</div>
+  </div>
+</div>
+
+<script src="/assets/api.js"></script>
+<script src="/assets/auth-client.js"></script>
+<script src="/assets/music-player.js"></script>
+<script>
+// Netlify's /join/:slug -> /join.html?slug=:slug rule is a rewrite (status 200),
+// which serves join.html's content for the ORIGINAL request URL without the
+// browser ever seeing that appended query string - window.location.search stays
+// empty on /join/<slug>. So the slug has to be read from the path instead.
+function resolveSlug(prefix){
+  const qsSlug = new URLSearchParams(window.location.search).get('slug');
+  if(qsSlug) return qsSlug;
+  const parts = window.location.pathname.split('/').filter(Boolean);
+  const idx = parts.indexOf(prefix);
+  if(idx !== -1 && parts[idx+1]) return decodeURIComponent(parts[idx+1]);
+  return null;
+}
+const slug = resolveSlug('join');
+let batch = null;
+let roster = [];
+let selectedLearnerId = null;
+let freeTypeMode = false;
+
+function showError(msg){
+  document.getElementById('errorBox').innerHTML = msg ? `<div class="error-box">${msg}</div>` : '';
+}
+
+function initials(name){
+  return name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase();
+}
+
+async function loadBatch(){
+  if(!slug){
+    document.getElementById('batchName').textContent = 'Missing convocation link';
+    document.getElementById('joinSub').textContent = 'This link is missing a batch. Ask your mentor for the correct join link.';
+    document.getElementById('joinBody').style.display = 'none';
+    return;
+  }
+  try{
+    const data = await Api.apiGet('live-bootstrap', { slug });
+    batch = data.batch;
+    roster = data.roster;
+    document.getElementById('joinEyebrow').textContent = batch.programName || 'Imarticus Learning · E-Convocation';
+    document.getElementById('batchName').textContent = batch.cohortLabel || batch.name;
+    document.getElementById('joinSub').textContent = 'Find your name below to join the live ceremony.';
+    renderResults('');
+  }catch(e){
+    document.getElementById('batchName').textContent = 'Convocation Not Found';
+    document.getElementById('joinSub').textContent = e.statusCode === 403
+      ? 'This convocation is not live yet. Please check back at the scheduled time.'
+      : "We couldn't find that convocation. Double-check the link your mentor shared.";
+    document.getElementById('joinBody').style.display = 'none';
+  }
+}
+
+function renderResults(query){
+  const el = document.getElementById('nameResults');
+  el.innerHTML = '';
+  if(freeTypeMode) return;
+  const q = query.trim().toLowerCase();
+  const matches = q ? roster.filter(r => r.name.toLowerCase().includes(q)) : roster.slice(0, 8);
+  matches.forEach(r => {
+    const opt = document.createElement('div');
+    opt.className = 'name-opt';
+    opt.innerHTML = `<div class="name-avatar" style="background:${r.colorHex};">${r.photoUrl ? `<img src="${r.photoUrl}" alt="">` : initials(r.name)}</div>${r.name}`;
+    opt.onclick = () => selectLearner(r);
+    el.appendChild(opt);
+  });
+}
+
+function selectLearner(r){
+  selectedLearnerId = r.learnerId;
+  document.getElementById('nameInput').value = r.name;
+  document.getElementById('nameResults').innerHTML = '';
+  document.getElementById('joinBtn').disabled = false;
+}
+
+document.getElementById('nameInput').addEventListener('input', (e) => {
+  selectedLearnerId = null;
+  document.getElementById('joinBtn').disabled = freeTypeMode ? !e.target.value.trim() : true;
+  renderResults(e.target.value);
+});
+
+document.getElementById('notListedBtn').addEventListener('click', () => {
+  freeTypeMode = true;
+  document.getElementById('nameResults').innerHTML = '';
+  document.getElementById('notListedBtn').style.display = 'none';
+  const input = document.getElementById('nameInput');
+  input.value = '';
+  input.placeholder = 'Type your full name…';
+  input.focus();
+  document.getElementById('joinBtn').disabled = true;
+});
+
+document.getElementById('joinBtn').addEventListener('click', async () => {
+  showError('');
+  const name = document.getElementById('nameInput').value.trim();
+  if(!name){ showError('Please enter your name.'); return; }
+  const btn = document.getElementById('joinBtn');
+  btn.disabled = true;
+  btn.textContent = 'Joining…';
+  try{
+    const res = await Api.apiPost('join', {
+      batchSlug: slug,
+      learnerId: selectedLearnerId || undefined,
+      learnerName: name,
+    });
+    AuthClient.setLearnerSession(batch.id, res);
+    window.location.href = `/live/${batch.joinSlug}`;
+  }catch(e){
+    showError(e.message || 'Could not join. Please try again.');
+    btn.disabled = false;
+    btn.textContent = '🎓 Join Convocation';
+  }
+});
+
+// Tap-to-enter gate: browsers block audio.play() with sound without a user
+// gesture, so this click both starts the music and reveals the join form.
+document.getElementById('gate').addEventListener('click', function onGateTap(){
+  document.getElementById('gate').classList.add('hidden');
+  document.getElementById('joinCard').style.display = 'block';
+  if(window.MusicPlayer){ MusicPlayer.init(); }
+  loadBatch();
+}, { once: true });
+</script>
+</body>
+</html>
