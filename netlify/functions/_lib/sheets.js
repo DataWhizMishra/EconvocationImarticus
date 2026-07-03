@@ -1,9 +1,14 @@
 const { callAppsScript } = require('./appsScript');
 
 // short-lived in-memory cache (per warm function container) to absorb bursts
-// of concurrent learner polling without hammering the Apps Script quota.
+// of concurrent learner polling without hammering the Apps Script quota. This
+// cache is NOT shared across serverless invocations/containers, so a write's
+// invalidateCache() call only clears it for whichever container handled that
+// write - other warm containers keep serving their own cached copy until it
+// naturally expires. Keep this short: it's the ceiling on how stale any given
+// container's view of the data can be, on top of client poll interval.
 const rowCache = new Map(); // sheetName -> { rows, ts }
-const CACHE_MS = 2500;
+const CACHE_MS = 1000;
 
 function invalidateCache(sheetName) {
   rowCache.delete(sheetName);

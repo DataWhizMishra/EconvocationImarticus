@@ -20,14 +20,19 @@ exports.handler = withHandler(async ({ event, body }) => {
     if (patchIn[k] !== undefined) patch[k] = String(patchIn[k]);
   });
 
-  // Stamp a shared start time for the background music the first time this
-  // batch's live state is touched, so every client (mentor + every learner)
-  // can compute the same "how far into the loop are we" offset from a common
-  // reference instead of each starting the track from 0 independently.
-  const rows = await getRows('LiveState');
-  const existing = rows.find((r) => r.batchId === batchId);
-  if (!existing || !existing.musicStartedAt) {
-    patch.musicStartedAt = String(Date.now());
+  // Stamp a shared start time for the background music, so every client
+  // (mentor + every learner) can compute the same "how far into the loop are
+  // we" offset from a common reference instead of each starting the track
+  // from 0 independently. Only checked on the dedicated bootstrap call (empty
+  // patch, sent once when the mentor opens the live page) - every other call
+  // is on the hot path (fires on every Next/Prev/Reveal click) and skipping
+  // this extra Apps Script round trip there matters for slide-sync latency.
+  if (Object.keys(patchIn).length === 0) {
+    const rows = await getRows('LiveState');
+    const existing = rows.find((r) => r.batchId === batchId);
+    if (!existing || !existing.musicStartedAt) {
+      patch.musicStartedAt = String(Date.now());
+    }
   }
 
   return upsertRowByKey('LiveState', 'batchId', patch);
