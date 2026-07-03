@@ -325,6 +325,12 @@ async function boot(){
     document.getElementById('mentorQControls').style.display = 'flex';
     document.getElementById('learnerQNote').style.display = 'none';
     updateCue();
+    // Empty patch: just makes sure LiveState.musicStartedAt gets stamped the
+    // first time a mentor opens this batch's live page, so every learner's
+    // player has a shared reference to sync against from the start.
+    LiveState.set({}).then((result) => {
+      if(result && result.musicStartedAt) MusicPlayer.resyncTo(result.musicStartedAt);
+    });
   } else {
     document.getElementById('cue').style.display = 'none';
     document.getElementById('mentorQControls').style.display = 'none';
@@ -489,6 +495,7 @@ function startPolling(){
 async function pollLiveState(){
   try{
     const state = await Api.apiGet('live-state-get', { batchId: batch.id });
+    if(state.musicStartedAt) MusicPlayer.resyncTo(state.musicStartedAt);
     if(mode === 'learner'){
       applyLearnerState(state);
     } else if(slideIds[cur] === 's7'){

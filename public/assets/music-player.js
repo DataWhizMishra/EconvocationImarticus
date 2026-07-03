@@ -47,14 +47,37 @@
     return el.play();
   }
 
+  // Seeks the currently loaded track to where it "should" be right now given
+  // a shared start reference (epoch ms), so every client - mentor and every
+  // learner, whenever their own audio element actually starts - lands on
+  // (near enough) the same position instead of each one starting the loop
+  // from 0 whenever their own gate happens to get tapped. Safe to call often
+  // (e.g. every poll tick): it only seeks when drift exceeds DRIFT_TOLERANCE.
+  const DRIFT_TOLERANCE_SEC = 1.5;
+  function resyncTo(startedAtMs) {
+    if (!startedAtMs || !audioEl) return;
+    const seek = () => {
+      const dur = audioEl.duration;
+      if (!dur || !isFinite(dur) || dur <= 0) return;
+      const elapsed = (Date.now() - Number(startedAtMs)) / 1000;
+      const target = ((elapsed % dur) + dur) % dur;
+      if (Math.abs(audioEl.currentTime - target) > DRIFT_TOLERANCE_SEC) {
+        audioEl.currentTime = target;
+      }
+    };
+    if (audioEl.readyState >= 1) seek();
+    else audioEl.addEventListener('loadedmetadata', seek, { once: true });
+  }
+
   // Resolves once music is either playing (autoplay allowed) or the user has
   // tapped #gate to start it. If the page has no #gate element and autoplay
   // is blocked, resolves anyway so the caller isn't stuck waiting forever.
-  function init(src) {
+  function init(src, startedAtMs) {
     return new Promise((resolve) => {
       play(src)
         .then(() => {
           hideGate();
+          if (startedAtMs) resyncTo(startedAtMs);
           resolve('autoplay');
         })
         .catch(() => {
@@ -65,7 +88,11 @@
             return;
           }
           const onTap = () => {
-            play(src).catch(() => {});
+            play(src)
+              .then(() => {
+                if (startedAtMs) resyncTo(startedAtMs);
+              })
+              .catch((err) => console.warn('MusicPlayer: playback failed after tap', err));
             hideGate();
             resolve('gesture');
           };
@@ -110,5 +137,5 @@
     return muted;
   }
 
-  window.MusicPlayer = { init, crossfadeTo, toggleMute, isMuted, DEFAULT_TRACK };
+  window.MusicPlayer = { init, crossfadeTo, toggleMute, isMuted, resyncTo, DEFAULT_TRACK };
 })();

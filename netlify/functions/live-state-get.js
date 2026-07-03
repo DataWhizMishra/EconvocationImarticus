@@ -23,6 +23,7 @@ exports.handler = withHandler(async ({ qs }) => {
     questionIndex: Number(state.questionIndex) || 0,
     certCycleIndex: Number(state.certCycleIndex) || 0,
     awardCycleIndex: Number(state.awardCycleIndex) || 0,
+    musicStartedAt: state.musicStartedAt ? Number(state.musicStartedAt) : null,
     updatedAt: state.updatedAt,
   };
 

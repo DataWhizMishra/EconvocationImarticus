@@ -44,6 +44,7 @@ exports.handler = withHandler(async ({ event, body }) => {
     questionIndex: '0',
     certCycleIndex: '0',
     awardCycleIndex: '0',
+    musicStartedAt: '',
     updatedAt: now,
     updatedBy: 'system',
   });

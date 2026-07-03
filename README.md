@@ -58,7 +58,14 @@ Google Sheets (database)   +   Google Drive (photos)
 7. **Music**: this repo does not ship an audio file. Either set a "Default
    Music URL" per batch in the admin Settings tab, or add your own licensed
    loop at `public/assets/music/default-loop.mp3` (see the README in that
-   folder — do not use commercial songs).
+   folder — do not use commercial songs). The mentor's and every learner's
+   audio position resyncs every ~4s against a shared `musicStartedAt`
+   timestamp in `LiveState` (stamped the moment the mentor opens the live
+   page), so playback stays aligned across everyone watching. Each page is
+   still a separate browser tab/document, so browser autoplay rules mean a
+   learner may need to tap "Tap to Enter" once on `/join/...` and again on
+   `/live/...` — that second tap is a browser security requirement (loudest
+   on iOS Safari), not something JS can bypass.
 
 Redeploying the Apps Script after edits: use **Deploy → Manage deployments
 → edit (pencil) → New version → Deploy** so the `/exec` URL stays the same;
@@ -92,7 +99,7 @@ matter, the code keys off header name).
 `batchId, questionId, learnerId, learnerName, selectedOption, isCorrect, submittedAt`
 
 **LiveState**
-`batchId, currentSlideIndex, currentSlideId, quizPhase, currentQuestionId, questionIndex, certCycleIndex, awardCycleIndex, updatedAt, updatedBy`
+`batchId, currentSlideIndex, currentSlideId, quizPhase, currentQuestionId, questionIndex, certCycleIndex, awardCycleIndex, musicStartedAt, updatedAt, updatedBy`
 
 Just create the 8 tabs with those header rows — every row after that is
 managed entirely by the app.
