@@ -1,17 +1,19 @@
 const { withHandler, HttpError } = require('./_lib/http');
 const { getRowsBundle } = require('./_lib/sheets');
+const { getLiveState } = require('./_lib/firebase');
 
 const LETTERS = ['A', 'B', 'C', 'D'];
 
-// The single polling endpoint both mentor and learner clients hit every few
-// seconds. Merges slide/quiz position with a live tally so only one Apps
-// Script round trip is needed here, no matter which fields are needed.
+// Slide/quiz position now reaches clients via a direct Firebase listener
+// (see public/live.html) - this endpoint is only still needed for the quiz
+// tally, which requires aggregating the Responses sheet. Position fields are
+// still read here (from Firebase, not Sheets) and returned for the mentor's
+// tally-poll call, which reuses the same response shape.
 exports.handler = withHandler(async ({ qs }) => {
   const { batchId } = qs;
   if (!batchId) throw new HttpError(400, 'batchId query param required');
 
-  const bundle = await getRowsBundle(['LiveState', 'Responses', 'Questions']);
-  const state = bundle.LiveState.find((r) => r.batchId === batchId);
+  const state = await getLiveState(batchId);
   if (!state) throw new HttpError(404, 'Batch has no live state yet');
 
   const result = {
@@ -28,6 +30,7 @@ exports.handler = withHandler(async ({ qs }) => {
   };
 
   if ((result.quizPhase === 'open' || result.quizPhase === 'revealed') && result.currentQuestionId) {
+    const bundle = await getRowsBundle(['Responses', 'Questions']);
     const qResponses = bundle.Responses.filter(
       (r) => r.batchId === batchId && r.questionId === result.currentQuestionId,
     );

@@ -2,5 +2,7 @@
   "name": "econvocation-functions",
   "version": "1.0.0",
   "private": true,
-  "dependencies": {}
+  "dependencies": {
+    "firebase-admin": "^12.7.0"
+  }
 }

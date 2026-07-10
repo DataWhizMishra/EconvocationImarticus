@@ -1,7 +1,9 @@
 /**
  * E-Convocation backend — deploy this bound to the spreadsheet that has the
- * 8 tabs described in the project README (Batches, Roster, Messages,
- * SpecialCerts, Awards, Questions, Responses, LiveState).
+ * 7 tabs described in the project README (Batches, Roster, Messages,
+ * SpecialCerts, Awards, Questions, Responses). Live sync state (current
+ * slide, quiz phase, etc.) lives in Firebase Realtime Database instead, not
+ * in this spreadsheet - see netlify/functions/_lib/firebase.js.
  *
  * Setup:
  * 1. Open the spreadsheet -> Extensions -> Apps Script.

@@ -1,8 +1,9 @@
 const { withHandler, HttpError } = require('./_lib/http');
 const { requireMentor } = require('./_lib/auth');
-const { getRows, appendRow, upsertRowByKey } = require('./_lib/sheets');
+const { getRows, appendRow } = require('./_lib/sheets');
 const { newId, slugify } = require('./_lib/id');
 const { toRow } = require('./_lib/batches');
+const { setLiveState } = require('./_lib/firebase');
 
 exports.handler = withHandler(async ({ event, body }) => {
   requireMentor(event);
@@ -34,18 +35,16 @@ exports.handler = withHandler(async ({ event, body }) => {
   };
   await appendRow('Batches', toRow(batch));
 
-  // seed an idle LiveState row so live-state-get never has to special-case "no row yet"
-  await upsertRowByKey('LiveState', 'batchId', {
-    batchId: batch.id,
-    currentSlideIndex: '0',
+  // seed an idle live state node in Firebase so live-state-get never has to special-case "no state yet"
+  await setLiveState(batch.id, {
+    currentSlideIndex: 0,
     currentSlideId: 's1',
     quizPhase: 'idle',
     currentQuestionId: '',
-    questionIndex: '0',
-    certCycleIndex: '0',
-    awardCycleIndex: '0',
-    musicStartedAt: '',
-    updatedAt: now,
+    questionIndex: 0,
+    certCycleIndex: 0,
+    awardCycleIndex: 0,
+    updatedAt: Date.now(),
     updatedBy: 'system',
   });
 

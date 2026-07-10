@@ -239,6 +239,9 @@
 <div class="learner-note" id="learnerNote" style="display:none;">🎬 Following the host live…</div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-database-compat.js"></script>
+<script src="/assets/firebase-client.js"></script>
 <script src="/assets/api.js"></script>
 <script src="/assets/auth-client.js"></script>
 <script src="/assets/music-player.js"></script>
@@ -492,24 +495,41 @@ const LiveState = {
   },
 };
 
-const POLL_DELAY_MS = 1500;
+// Slide position, quiz phase, cert/award cycle and the music start-time all
+// reach every client through a live Firebase listener - no polling, updates
+// land in well under a second instead of waiting on the old Apps
+// Script-backed poll loop. Mentor writes still go through live-state-set.js
+// (see LiveState.set below) so the mentor-only auth check is unchanged.
 function startPolling(){
-  pollLiveState();
-}
-// Self-scheduling instead of setInterval: the Apps Script backend can take a
-// few seconds per call, and a fixed interval would let polls pile up faster
-// than they resolve. This always waits for one to finish before queuing the next.
-async function pollLiveState(){
-  try{
-    const state = await Api.apiGet('live-state-get', { batchId: batch.id });
+  LiveStateRTDB.ref('liveState/' + batch.id).on('value', (snap) => {
+    const raw = snap.val();
+    if(!raw) return;
+    const state = {
+      currentSlideIndex: Number(raw.currentSlideIndex) || 0,
+      quizPhase: raw.quizPhase || 'idle',
+      currentQuestionId: raw.currentQuestionId || '',
+      questionIndex: Number(raw.questionIndex) || 0,
+      certCycleIndex: Number(raw.certCycleIndex) || 0,
+      awardCycleIndex: Number(raw.awardCycleIndex) || 0,
+      musicStartedAt: raw.musicStartedAt || null,
+    };
     if(state.musicStartedAt) MusicPlayer.resyncTo(state.musicStartedAt);
-    if(mode === 'learner'){
-      applyLearnerState(state);
-    } else if(slideIds[cur] === 's7'){
+    if(mode === 'learner') applyLearnerState(state);
+  });
+  if(mode === 'mentor') pollQuizTally();
+}
+// The quiz vote tally still requires aggregating the Responses sheet, so it
+// stays on a poll - but only while the mentor is actually on the quiz slide,
+// and it no longer carries slide-sync latency with it.
+const TALLY_POLL_MS = 1500;
+async function pollQuizTally(){
+  try{
+    if(slideIds[cur] === 's7'){
+      const state = await Api.apiGet('live-state-get', { batchId: batch.id });
       renderQuizTally(state);
     }
   }catch(e){ /* transient - ignore, try again next tick */ }
-  setTimeout(pollLiveState, POLL_DELAY_MS);
+  setTimeout(pollQuizTally, TALLY_POLL_MS);
 }
 function applyLearnerState(state){
   if(state.currentSlideIndex !== lastAppliedSlideIndex){

@@ -10,7 +10,15 @@ live from their own device. Background music plays throughout.
 Static frontend (plain HTML/CSS/JS, no build step) on Netlify, backed by
 Netlify Functions that talk to a Google Apps Script Web App bound to your
 spreadsheet — the Apps Script does the actual Sheets/Drive reads and writes.
-No Google Cloud project or service account needed.
+
+Live sync (current slide, quiz phase, cert/award cycle, shared music
+start-time) is the one piece that needs to be fast, so it bypasses Sheets/Apps
+Script entirely and goes through Firebase Realtime Database instead: the
+mentor's clicks still go through an authenticated Netlify function, which
+writes to Firebase with the Admin SDK; every learner's browser holds a live
+listener on that same node, so slide changes land in well under a second
+instead of waiting on Apps Script's multi-second round trip. Everything else
+(roster, questions, responses, batches, photos) still lives in Sheets/Drive.
 
 ## Architecture
 
@@ -19,12 +27,13 @@ Browser (public/, static)
   /admin/login.html, /admin/dashboard.html, /admin/batch-editor.html   (mentor)
   /join.html   → served at /join/:slug                                 (learner)
   /live.html   → served at /live/:slug   (?mode=mentor for the host view)
-        │ fetch("/api/...") + poll every 3s
-        ▼
-Netlify Functions (netlify/functions/*.js)
-        │ HTTPS POST + shared secret
-        ▼
-Google Apps Script Web App (apps-script/Code.gs)
+        │                                        │
+        │ fetch("/api/...")                      │ live listener (Firebase client SDK, read-only)
+        ▼                                         ▼
+Netlify Functions (netlify/functions/*.js)   Firebase Realtime Database (liveState/{batchId})
+        │ HTTPS POST + shared secret               ▲
+        ▼                                          │ Admin SDK write (mentor-only, via requireMentor())
+Google Apps Script Web App (apps-script/Code.gs) ──┘
         │
         ▼
 Google Sheets (database)   +   Google Drive (photos)
@@ -32,7 +41,7 @@ Google Sheets (database)   +   Google Drive (photos)
 
 ## One-time setup (you must do this yourself)
 
-1. **Spreadsheet**: create a new Google Sheet with the 8 tabs and header
+1. **Spreadsheet**: create a new Google Sheet with the 7 tabs and header
    rows below (row 1 = headers, exact names matter).
 2. **Apps Script**: open the spreadsheet → Extensions → Apps Script, delete
    the default code, and paste in the contents of `apps-script/Code.gs`
@@ -46,26 +55,49 @@ Google Sheets (database)   +   Google Drive (photos)
 4. **Deploy the Web App**: Deploy → New deployment → type "Web app" →
    Execute as **Me** → Who has access **Anyone** → Deploy → authorize the
    permissions it asks for → copy the Web app URL (ends in `/exec`).
-5. **Netlify env vars** (Site settings → Environment variables):
+5. **Firebase Realtime Database**: create a project at
+   [console.firebase.google.com](https://console.firebase.google.com) and add
+   a Realtime Database to it (any region).
+   - **Client config**: Project Settings → General → Your apps → add a Web
+     app → copy the config object into `public/assets/firebase-client.js`.
+     This apiKey is not a secret; Firebase web configs are meant to be public
+     — access is enforced by the database rules below, not by hiding this.
+   - **Service account** (for the Netlify functions' Admin SDK, which is the
+     only thing allowed to write): Project Settings → Service Accounts →
+     Generate new private key → downloads a JSON file. From it, set as
+     Netlify env vars: `FIREBASE_PROJECT_ID` (`project_id`),
+     `FIREBASE_CLIENT_EMAIL` (`client_email`), `FIREBASE_PRIVATE_KEY`
+     (`private_key`, keep the `\n` sequences as-is), plus
+     `FIREBASE_DATABASE_URL` (the `https://<project>-default-rtdb...`
+     URL shown on the Realtime Database page). Never commit that JSON file.
+   - **Security rules** (Realtime Database → Rules tab): deny all client
+     writes, since only the Admin SDK (server-side, gated by
+     `requireMentor()`) should ever write:
+     ```json
+     { "rules": { "liveState": { ".read": true, ".write": false } } }
+     ```
+6. **Netlify env vars** (Site settings → Environment variables):
    - `APPS_SCRIPT_URL` — the `/exec` URL from step 4
    - `APPS_SCRIPT_SECRET` — the same value as `API_SECRET` from step 3
    - `MENTOR_PASSWORD` — the one shared password mentors log in with
    - `SESSION_SECRET` — any long random string, used to sign session tokens
    - `DEFAULT_MUSIC_URL` *(optional)* — fallback track if a batch has none set
-6. **Deploy the site**: connect this repo to Netlify (publish directory
+   - `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`,
+     `FIREBASE_DATABASE_URL` — from step 5
+7. **Deploy the site**: connect this repo to Netlify (publish directory
    `public`, functions directory `netlify/functions`), or deploy with the
    Netlify CLI (`netlify deploy --prod`).
-7. **Music**: this repo does not ship an audio file. Either set a "Default
+8. **Music**: this repo does not ship an audio file. Either set a "Default
    Music URL" per batch in the admin Settings tab, or add your own licensed
    loop at `public/assets/music/default-loop.mp3` (see the README in that
    folder — do not use commercial songs). The mentor's and every learner's
-   audio position resyncs every ~4s against a shared `musicStartedAt`
-   timestamp in `LiveState` (stamped the moment the mentor opens the live
-   page), so playback stays aligned across everyone watching. Each page is
-   still a separate browser tab/document, so browser autoplay rules mean a
-   learner may need to tap "Tap to Enter" once on `/join/...` and again on
-   `/live/...` — that second tap is a browser security requirement (loudest
-   on iOS Safari), not something JS can bypass.
+   audio position resyncs against a shared `musicStartedAt` timestamp in
+   Firebase (stamped the moment the mentor opens the live page), pushed live
+   instead of polled, so playback stays aligned across everyone watching.
+   Each page is still a separate browser tab/document, so browser autoplay
+   rules mean a learner may need to tap "Tap to Enter" once on `/join/...`
+   and again on `/live/...` — that second tap is a browser security
+   requirement (loudest on iOS Safari), not something JS can bypass.
 
 Redeploying the Apps Script after edits: use **Deploy → Manage deployments
 → edit (pencil) → New version → Deploy** so the `/exec` URL stays the same;
@@ -98,11 +130,9 @@ matter, the code keys off header name).
 **Responses**
 `batchId, questionId, learnerId, learnerName, selectedOption, isCorrect, submittedAt`
 
-**LiveState**
-`batchId, currentSlideIndex, currentSlideId, quizPhase, currentQuestionId, questionIndex, certCycleIndex, awardCycleIndex, musicStartedAt, updatedAt, updatedBy`
-
-Just create the 8 tabs with those header rows — every row after that is
-managed entirely by the app.
+Just create these 7 tabs with those header rows — every row after that is
+managed entirely by the app. (There is no `LiveState` tab anymore — that data
+now lives in Firebase Realtime Database, see the setup steps above.)
 
 ## Using it
 

@@ -1,6 +1,7 @@
 const { withHandler, HttpError } = require('./_lib/http');
 const { requireLearner } = require('./_lib/auth');
 const { getRowsBundle, upsertRowByKey } = require('./_lib/sheets');
+const { getLiveState } = require('./_lib/firebase');
 
 exports.handler = withHandler(async ({ event, body }) => {
   const { batchId, questionId, selectedOption } = body;
@@ -10,10 +11,8 @@ exports.handler = withHandler(async ({ event, body }) => {
   }
   const learner = requireLearner(event, batchId);
 
-  const bundle = await getRowsBundle(['LiveState', 'Questions']);
-  const stateRows = bundle.LiveState;
+  const [state, bundle] = await Promise.all([getLiveState(batchId), getRowsBundle(['Questions'])]);
   const questionRows = bundle.Questions;
-  const state = stateRows.find((r) => r.batchId === batchId);
   if (!state || state.quizPhase !== 'open' || state.currentQuestionId !== questionId) {
     throw new HttpError(409, 'This question is not currently open for answers');
   }
