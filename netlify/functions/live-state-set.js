@@ -5,6 +5,7 @@ const { setLiveState, stampMusicStartIfAbsent } = require('./_lib/firebase');
 const ALLOWED = [
   'currentSlideIndex', 'currentSlideId', 'quizPhase', 'currentQuestionId',
   'questionIndex', 'certCycleIndex', 'awardCycleIndex',
+  'questionOpenedAt', 'questionTimerSeconds',
 ];
 
 // Mentor-only. Called on every Next/Prev/Reveal/cycle-cert/cycle-award action

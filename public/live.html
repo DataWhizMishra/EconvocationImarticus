@@ -514,6 +514,8 @@ function startPolling(){
       certCycleIndex: Number(raw.certCycleIndex) || 0,
       awardCycleIndex: Number(raw.awardCycleIndex) || 0,
       musicStartedAt: raw.musicStartedAt || null,
+      questionOpenedAt: raw.questionOpenedAt || null,
+      questionTimerSeconds: Number(raw.questionTimerSeconds) || 0,
     };
     if(state.musicStartedAt) MusicPlayer.resyncTo(state.musicStartedAt);
     if(mode === 'learner') applyLearnerState(state);
@@ -533,6 +535,30 @@ async function pollQuizTally(){
   }catch(e){ /* transient - ignore, try again next tick */ }
   setTimeout(pollQuizTally, TALLY_POLL_MS);
 }
+// The mentor's own timer bar (#qtf/#qtimer) only ticks locally in the
+// mentor's browser (startQTimer's setInterval) - it's never broadcast tick
+// by tick. Learners instead get a shared reference point (questionOpenedAt +
+// questionTimerSeconds) via Firebase and compute their own countdown from
+// wall-clock time, the same pattern already used for music sync.
+let learnerQTimerInt = null, learnerQTimerQid = null;
+function syncLearnerQuizTimer(state){
+  if(state.quizPhase !== 'open' || !state.questionOpenedAt || !state.questionTimerSeconds){
+    clearInterval(learnerQTimerInt); learnerQTimerInt = null; learnerQTimerQid = null;
+    return;
+  }
+  if(learnerQTimerQid === state.currentQuestionId) return;
+  learnerQTimerQid = state.currentQuestionId;
+  clearInterval(learnerQTimerInt);
+  const total = state.questionTimerSeconds, openedAt = state.questionOpenedAt;
+  const tick = () => {
+    const remaining = Math.max(0, Math.ceil(total - (Date.now() - openedAt) / 1000));
+    const tf = document.getElementById('qtf'), tn = document.getElementById('qtimer');
+    if(tf) tf.style.width = (remaining / total * 100) + '%';
+    if(tn){ tn.textContent = remaining; tn.style.color = remaining <= 5 ? '#EF4444' : 'var(--brand)'; }
+  };
+  tick();
+  learnerQTimerInt = setInterval(tick, 250);
+}
 function applyLearnerState(state){
   if(state.currentSlideIndex !== lastAppliedSlideIndex){
     lastAppliedSlideIndex = state.currentSlideIndex;
@@ -540,7 +566,7 @@ function applyLearnerState(state){
   }
   if(state.certCycleIndex !== certIdx) renderCert(state.certCycleIndex);
   if(awards.length && state.awardCycleIndex !== awIdx) renderAward(state.awardCycleIndex);
-  if(slideIds[state.currentSlideIndex] === 's7') renderLearnerQuiz(state);
+  if(slideIds[state.currentSlideIndex] === 's7'){ syncLearnerQuizTimer(state); renderLearnerQuiz(state); }
 }
 
 /* ---------- SLIDE NAVIGATION ---------- */
@@ -617,7 +643,7 @@ function mentorOpenQuestion(idx){
   document.getElementById('qrevbtn').disabled = false;
   document.getElementById('qnxtbtn').disabled = true;
   document.getElementById('qnote').textContent = q.kind === 'poll' ? '🗳️ Poll — learners vote live on their phones!' : '💬 Learners answer live on their phones — then Reveal!';
-  LiveState.set({ currentQuestionId: q.questionId, questionIndex: idx, quizPhase: 'open' });
+  LiveState.set({ currentQuestionId: q.questionId, questionIndex: idx, quizPhase: 'open', questionOpenedAt: Date.now(), questionTimerSeconds: q.timerSeconds || 30 });
   startQTimer(q.timerSeconds || 30);
 }
 function startQTimer(total){
@@ -680,7 +706,8 @@ function mentorEndQuiz(){
 }
 
 /* ---------- QUIZ / POLL: LEARNER ---------- */
-function renderLearnerQuiz(state){
+let lastLearnerTallyKey = null;
+async function renderLearnerQuiz(state){
   if(state.quizPhase === 'idle'){
     document.getElementById('quiz-body').style.display = 'flex';
     document.getElementById('qcomplete').style.display = 'none';
@@ -688,6 +715,7 @@ function renderLearnerQuiz(state){
     document.querySelectorAll('#qopts .qopt').forEach(el => { el.style.display = 'none'; el.onclick = null; });
     document.getElementById('learnerQNoteText').textContent = 'Sit tight — the quiz will begin shortly!';
     lastRenderedQuestionId = null;
+    lastLearnerTallyKey = null;
     return;
   }
   if(state.quizPhase === 'complete'){
@@ -733,12 +761,23 @@ function renderLearnerQuiz(state){
       const opt = document.getElementById('qo'+i)?.parentElement;
       if(opt) opt.onclick = null;
     });
-    renderQuizTally(state);
-    if(q.kind === 'quiz' && state.correctIndex !== undefined && state.correctIndex !== null){
-      noteEl.textContent = answered === undefined ? "⏱️ Time's up — you didn't answer in time." :
-        (answered === state.correctIndex ? '🎉 You got it right!' : '❌ Not quite — see the correct answer above.');
-    } else {
-      noteEl.textContent = '📊 Here are the live results!';
+    // Firebase's live state only carries slide/quiz position, not the vote
+    // tally or correct answer - those still live in Sheets (Responses/
+    // Questions), so fetch them once per question the moment this learner
+    // sees the reveal happen, instead of relying on data Firebase never has.
+    const tallyKey = q.questionId + ':revealed';
+    if(lastLearnerTallyKey !== tallyKey){
+      lastLearnerTallyKey = tallyKey;
+      try{
+        const fresh = await Api.apiGet('live-state-get', { batchId: batch.id });
+        renderQuizTally(fresh);
+        if(q.kind === 'quiz' && fresh.correctIndex !== undefined && fresh.correctIndex !== null){
+          noteEl.textContent = answered === undefined ? "⏱️ Time's up — you didn't answer in time." :
+            (answered === fresh.correctIndex ? '🎉 You got it right!' : '❌ Not quite — see the correct answer above.');
+        } else {
+          noteEl.textContent = '📊 Here are the live results!';
+        }
+      }catch(e){ lastLearnerTallyKey = null; }
     }
   } else {
     noteEl.textContent = 'Waiting for the host to open this question…';
