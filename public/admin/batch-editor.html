@@ -361,8 +361,13 @@ document.getElementById('importBtn').addEventListener('click', async () => {
 document.getElementById('addLearnerBtn').addEventListener('click', async () => {
   const name = prompt('Learner name:');
   if(!name || !name.trim()) return;
-  await Api.apiPost('roster-upsert', { batchId, name: name.trim() }, token);
-  loadRoster();
+  const btn = document.getElementById('addLearnerBtn');
+  btn.disabled = true; btn.textContent = 'Adding…';
+  try{
+    await Api.apiPost('roster-upsert', { batchId, name: name.trim() }, token);
+    await loadRoster();
+  }catch(e){ alert(e.message); }
+  btn.disabled = false; btn.textContent = '+ Add One';
 });
 
 /* ---------- MESSAGES ---------- */
@@ -420,17 +425,22 @@ async function loadCerts(){
 document.getElementById('addCertBtn').addEventListener('click', async () => {
   const label = document.getElementById('certLabel').value.trim();
   if(!label) return alert('Label is required.');
-  await Api.apiPost('special-certs-upsert', {
-    batchId,
-    type: document.getElementById('certType').value,
-    icon: document.getElementById('certIcon').value.trim() || '🏅',
-    label,
-    awardTitle: document.getElementById('certAwardTitle').value.trim(),
-    winners: document.getElementById('certWinners').value.split(',').map(s=>s.trim()).filter(Boolean),
-    description: document.getElementById('certDesc').value.trim(),
-  }, token);
-  ['certLabel','certAwardTitle','certWinners','certDesc'].forEach(id => document.getElementById(id).value = '');
-  loadCerts();
+  const btn = document.getElementById('addCertBtn');
+  btn.disabled = true; btn.textContent = 'Adding…';
+  try{
+    await Api.apiPost('special-certs-upsert', {
+      batchId,
+      type: document.getElementById('certType').value,
+      icon: document.getElementById('certIcon').value.trim() || '🏅',
+      label,
+      awardTitle: document.getElementById('certAwardTitle').value.trim(),
+      winners: document.getElementById('certWinners').value.split(',').map(s=>s.trim()).filter(Boolean),
+      description: document.getElementById('certDesc').value.trim(),
+    }, token);
+    ['certLabel','certAwardTitle','certWinners','certDesc'].forEach(id => document.getElementById(id).value = '');
+    await loadCerts();
+  }catch(e){ alert(e.message); }
+  btn.disabled = false; btn.textContent = '+ Add Certificate';
 });
 
 /* ---------- AWARDS ---------- */
@@ -460,12 +470,17 @@ document.getElementById('addAwardBtn').addEventListener('click', async () => {
   const category = document.getElementById('awardCategory').value.trim();
   const winnerName = document.getElementById('awardWinner').value.trim();
   if(!category || !winnerName) return alert('Category and winner name are required.');
-  await Api.apiPost('awards-upsert', {
-    batchId, category, winnerName,
-    winnerRole: document.getElementById('awardRole').value.trim(),
-  }, token);
-  ['awardCategory','awardWinner','awardRole'].forEach(id => document.getElementById(id).value = '');
-  loadAwards();
+  const btn = document.getElementById('addAwardBtn');
+  btn.disabled = true; btn.textContent = 'Adding…';
+  try{
+    await Api.apiPost('awards-upsert', {
+      batchId, category, winnerName,
+      winnerRole: document.getElementById('awardRole').value.trim(),
+    }, token);
+    ['awardCategory','awardWinner','awardRole'].forEach(id => document.getElementById(id).value = '');
+    await loadAwards();
+  }catch(e){ alert(e.message); }
+  btn.disabled = false; btn.textContent = '+ Add Award';
 });
 
 /* ---------- QUIZ / POLLS ---------- */
@@ -498,18 +513,23 @@ document.getElementById('addQuestionBtn').addEventListener('click', async () => 
   const text = document.getElementById('qText').value.trim();
   if(!text) return alert('Question text is required.');
   const kind = document.getElementById('qKind').value;
-  await Api.apiPost('questions-upsert', {
-    batchId, kind, text,
-    optionA: document.getElementById('qOptA').value.trim(),
-    optionB: document.getElementById('qOptB').value.trim(),
-    optionC: document.getElementById('qOptC').value.trim(),
-    optionD: document.getElementById('qOptD').value.trim(),
-    correctIndex: kind === 'quiz' ? Number(document.getElementById('qCorrect').value) : undefined,
-    explanation: document.getElementById('qExplanation').value.trim(),
-    timerSeconds: Number(document.getElementById('qTimer').value) || 30,
-  }, token);
-  ['qText','qOptA','qOptB','qOptC','qOptD','qExplanation'].forEach(id => document.getElementById(id).value = '');
-  loadQuestions();
+  const btn = document.getElementById('addQuestionBtn');
+  btn.disabled = true; btn.textContent = 'Adding…';
+  try{
+    await Api.apiPost('questions-upsert', {
+      batchId, kind, text,
+      optionA: document.getElementById('qOptA').value.trim(),
+      optionB: document.getElementById('qOptB').value.trim(),
+      optionC: document.getElementById('qOptC').value.trim(),
+      optionD: document.getElementById('qOptD').value.trim(),
+      correctIndex: kind === 'quiz' ? Number(document.getElementById('qCorrect').value) : undefined,
+      explanation: document.getElementById('qExplanation').value.trim(),
+      timerSeconds: Number(document.getElementById('qTimer').value) || 30,
+    }, token);
+    ['qText','qOptA','qOptB','qOptC','qOptD','qExplanation'].forEach(id => document.getElementById(id).value = '');
+    await loadQuestions();
+  }catch(e){ alert(e.message); }
+  btn.disabled = false; btn.textContent = '+ Add Question';
 });
 
 /* ---------- INIT ---------- */
